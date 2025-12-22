@@ -591,7 +591,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         conversationsList.innerHTML = conversations.map(conv => `
             <div class="conversation-item" data-conv-id="${conv.id}" onclick="openConversation('${conv.id}')">
                 <div class="conv-avatar">
-                    ${conv.displayAvatar ? `<img src="${conv.displayAvatar}" alt="Avatar" class="avatar-img">` : getInitials(conv.displayName || 'Rozmowa')}
+                    ${conv.displayAvatar ? `<img src="${conv.displayAvatar}" alt="Avatar" class="avatar-img">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-weight:bold;color:#666;">${getInitials(conv.displayName || 'Rozmowa')}</div>`}
                 </div>
                 <div class="conv-info">
                     <div class="conv-name">${escapeHtml(conv.displayName || 'Rozmowa')}</div>
@@ -696,7 +696,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <div class="message ${isSent ? 'sent' : 'received'}" data-msg-id="${msg.id}">
                     ${!isSent ? `
                         <div class="msg-avatar">
-                            ${avatar ? `<img src="${avatar}" alt="${senderName}">` : getInitials(senderName)}
+                            ${avatar ? `<img src="${avatar}" alt="${senderName}">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:bold;color:#666;">${getInitials(senderName)}</div>`}
                         </div>
                     ` : ''}
                     <div class="msg-content">
@@ -724,7 +724,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             <div class="message ${isSent ? 'sent' : 'received'}" data-msg-id="${msg.id}">
                 ${!isSent ? `
                     <div class="msg-avatar">
-                        ${avatar ? `<img src="${avatar}" alt="${senderName}">` : getInitials(senderName)}
+                        ${avatar ? `<img src="${avatar}" alt="${senderName}">` : `<div class="avatar-initials">${getInitials(senderName)}</div>`}
                     </div>
                 ` : ''}
                 <div class="msg-content">
@@ -856,7 +856,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         resultsDiv.innerHTML = users.map(user => `
             <div class="user-search-item" onclick="selectUser('${user.id}', '${escapeHtml(user.full_name || user.email)}', '${user.avatar_url || ''}')">
                 <div class="user-avatar">
-                    ${user.avatar_url ? `<img src="${user.avatar_url}" alt="${user.full_name}">` : getInitials(user.full_name || user.email)}
+                    ${user.avatar_url ? `<img src="${user.avatar_url}" alt="${user.full_name}">` : `<div class="avatar-initials">${getInitials(user.full_name || user.email)}</div>`}
                 </div>
                 <div class="user-info">
                     <div class="user-name">${escapeHtml(user.full_name || user.email)}</div>
@@ -1237,6 +1237,28 @@ document.addEventListener('DOMContentLoaded', async () => {
         return 'Wystąpił błąd. Spróbuj ponownie.';
     }
 
+    // Formatowanie czasu wiadomości
+    function formatMessageTime(timestamp) {
+        const date = new Date(timestamp);
+        const now = new Date();
+        const diffMs = now - date;
+        const diffMins = Math.floor(diffMs / 60000);
+        const diffHours = Math.floor(diffMs / 3600000);
+        const diffDays = Math.floor(diffMs / 86400000);
+
+        if (diffMins < 1) return 'Teraz';
+        if (diffMins < 60) return `${diffMins} min temu`;
+        if (diffHours < 24) return `${diffHours}godz temu`;
+        if (diffDays === 1) return 'Wczoraj';
+        if (diffDays < 7) return `${diffDays} dni temu`;
+
+        return date.toLocaleDateString('pl-PL', {
+            day: 'numeric',
+            month: 'short',
+            year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
+        });
+    }
+
     // ============================================
     // BLA_BLA_AIR POST FEED - SYSTEM POSTÓW
     // ============================================
@@ -1356,17 +1378,43 @@ document.addEventListener('DOMContentLoaded', async () => {
                 // Upload załączników jeśli są
                 let uploadedAttachments = [];
                 if (selectedAttachments.length > 0) {
+                    // Najpierw utwórz post aby mieć ID
+                    const tempPost = await createPost(userData.user.id, content, []);
+
+                    // Następnie uploaduj pliki
                     uploadedAttachments = await Promise.all(
                         selectedAttachments.map(async (att) => {
-                            // TODO: Upload do storage - na razie zwracamy placeholder
-                            // const uploaded = await uploadAttachment('temp', att.file);
-                            return {
-                                type: att.type,
-                                url: URL.createObjectURL(att.file), // Placeholder - w produkcji będzie prawdziwy URL
-                                filename: att.file.name
-                            };
+                            return await uploadAttachment(tempPost.id, att.file);
                         })
                     );
+
+                    // Dodaj załączniki do bazy
+                    if (uploadedAttachments.length > 0) {
+                        const attachmentsData = uploadedAttachments.map(att => ({
+                            post_id: tempPost.id,
+                            type: att.type,
+                            url: att.url,
+                            filename: att.filename
+                        }));
+
+                        const { error: attachError } = await supabase
+                            .from('blabla_post_attachments')
+                            .insert(attachmentsData);
+
+                        if (attachError) throw new Error(attachError.message);
+                    }
+
+                    // Wyczyść formularz
+                    postContentInput.value = '';
+                    selectedAttachments = [];
+                    renderAttachmentsPreview();
+
+                    // Odśwież listę postów
+                    await loadPosts();
+
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Opublikuj';
+                    return;
                 }
 
                 // Utwórz post
