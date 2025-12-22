@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evair - Platforma Społecznościowa</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <div class="background-decor">
+        <div class="shape shape-1"></div>
+        <div class="shape shape-2"></div>
+    </div>
+
+    <header class="top-bar">
+        <div class="top-bar-left">
+            <button id="mobile-menu-btn" aria-label="Otwórz menu">
+                <svg width="24" height="24" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+            </button>
+            
+            <div class="logo-container">
+                <img src="logo.png" alt="Evair Logo" class="logo-img"> 
+            </div>
+
+            <h1 id="page-title" class="page-title">Witaj!</h1>
+        </div>
+        
+        <!-- NEW: Dropdown profilu użytkownika -->
+        <div class="user-profile" id="user-profile-section">
+            <button class="user-profile-btn" id="user-profile-btn" aria-label="Menu użytkownika">
+                <span class="user-name" id="user-display-name">Gość</span>
+                <div class="avatar" id="user-avatar">?</div>
+            </button>
+            <div class="user-dropdown" id="user-dropdown">
+                <button class="dropdown-item" data-target="profile">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                    Mój profil
+                </button>
+                <button class="dropdown-item" id="logout-btn">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                    Wyloguj się
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <nav id="sidebar" class="sidebar">
+            <div class="sidebar-content">
+                
+                <div class="nav-group">
+                    <h3 class="nav-header">Informacje</h3>
+                    <ul>
+                        <li>
+                            <button class="nav-btn active" data-target="welcome">
+                                <svg class="nav-icon" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                                Witaj!
+                            </button>
+                        </li>
+                        <li>
+                            <button class="nav-btn" data-target="announcements">
+                                <svg class="nav-icon" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                                Ogłoszenia
+                            </button>
+                        </li>
+                        <li>
+                            <button class="nav-btn" data-target="events">
+                                <svg class="nav-icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                                Wydarzenia
+                            </button>
+                        </li>
+                        <li>
+                            <button class="nav-btn" data-target="booking">
+                                <svg class="nav-icon" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                                Kalendarz rezerwacji
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="nav-group">
+                    <h3 class="nav-header">Szkolenia</h3>
+                    <ul>
+                        <li>
+                            <button class="nav-btn" data-target="training">
+                                <svg class="nav-icon" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+                                Materiały szkoleniowe
+                            </button>
+                        </li>
+                        <li>
+                            <button class="nav-btn disabled" disabled>
+                                <svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>
+                                Centrum Nauki
+                                <span class="badge-soon">Wkrótce</span>
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="nav-group">
+                    <h3 class="nav-header">Społeczność</h3>
+                    <ul>
+                        <li>
+                            <button class="nav-btn" data-target="feed">
+                                <svg class="nav-icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                                BlaBlaAir
+                            </button>
+                        </li>
+                        <li>
+                            <button class="nav-btn" data-target="gallery">
+                                <svg class="nav-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                                Galeria zdjęć
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Evair - rozmowy (POZA KATEGORIAMI, lewy dolny róg) -->
+                <div class="nav-private-chat">
+                    <button class="nav-btn" data-target="private-chat">
+                        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path><circle cx="12" cy="11" r="1"></circle><circle cx="16" cy="11" r="1"></circle><circle cx="8" cy="11" r="1"></circle></svg>
+                        Evair - rozmowy
+                    </button>
+                </div>
+
+            </div>
+        </nav>
+
+        <main id="content" class="content-area">
+
+            <section id="welcome" class="channel-section active">
+                <div class="card welcome-card">
+                    <h2>Witaj na platformie Evair!</h2>
+                    <p class="intro-text">Cieszymy się, że jesteś z nami. Oto kilka prostych kroków na początek:</p>
+                    <ul class="steps-list">
+                        <li><strong>1.</strong> Uzupełnij swój profil (kliknij w swoje imię w prawym górnym rogu).</li>
+                        <li><strong>2.</strong> Zapoznaj się z regulaminem (link w stopce strony).</li>
+                        <li><strong>3.</strong> Rozpocznij rozmowy z innymi użytkownikami w sekcji „Evair - rozmowy".</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section id="announcements" class="channel-section">
+                <div class="section-header">
+                    <h2>Tablica ogłoszeń</h2>
+                    <p class="subtitle">Tutaj znajdziesz komunikaty od administracji.</p>
+                </div>
+                
+                <div class="card announcement-card">
+                    <div class="card-header">
+                        <h3>Spotkanie organizacyjne</h3>
+                        <span class="date">10 marca 2025</span>
+                    </div>
+                    <p>Zapraszamy wszystkich na krótkie spotkanie online dotyczące nowego sezonu lotów. Link wyślemy w dniu spotkania.</p>
+                    <span class="tag">Ważne</span>
+                </div>
+
+                <div class="card announcement-card">
+                    <div class="card-header">
+                        <h3>Przerwa techniczna</h3>
+                        <span class="date">5 marca 2025</span>
+                    </div>
+                    <p>W nocy z soboty na niedzielę platforma może być niedostępna przez około godzinę. Przepraszamy za utrudnienia.</p>
+                    <span class="tag">Techniczne</span>
+                </div>
+            </section>
+
+            <section id="events" class="channel-section">
+                <div class="section-header">
+                    <h2>Nadchodzące wydarzenia</h2>
+                    <p class="subtitle">Zapisz się, aby wziąć udział.</p>
+                </div>
+
+                <div class="card event-card">
+                    <div class="event-date-box">
+                        <span class="day">15</span>
+                        <span class="month">MAR</span>
+                    </div>
+                    <div class="event-details">
+                        <h3>Warsztaty z nawigacji</h3>
+                        <p class="event-time">Godzina: 18:00 - 20:00</p>
+                        <p>Praktyczne zajęcia z czytania map lotniczych dla początkujących.</p>
+                    </div>
+                    <button class="btn btn-outline">Zapisz się</button>
+                </div>
+
+                <div class="card event-card">
+                    <div class="event-date-box">
+                        <span class="day">22</span>
+                        <span class="month">MAR</span>
+                    </div>
+                    <div class="event-details">
+                        <h3>Spotkanie przy kawie</h3>
+                        <p class="event-time">Godzina: 16:00</p>
+                        <p>Luźne spotkanie integracyjne w naszym klubie.</p>
+                    </div>
+                    <button class="btn btn-outline">Zapisz się</button>
+                </div>
+            </section>
+
+            <section id="booking" class="channel-section">
+                <div class="card">
+                    <h2>System rezerwacji</h2>
+                    <p class="subtitle">Poniżej znajduje się kalendarz. Kliknij w wolny termin, aby zarezerwować.</p>
+                    
+                    <div class="iframe-placeholder big-placeholder">
+                        <p>Tutaj będzie osadzony kalendarz rezerwacji (iframe)</p>
+                    </div>
+                </div>
+            </section>
+
+
+            <!-- PRYWATNY MESSENGER - Evair rozmowy (lewy dolny róg) -->
+            <section id="private-chat" class="channel-section">
+                <!-- NOWY LAYOUT MESSENGERA -->
+                <div class="messenger-container">
+                    <!-- Lewy panel - lista konwersacji -->
+                    <div class="conversations-panel">
+                        <div class="conversations-header">
+                            <h3>Wiadomości</h3>
+                            <button id="new-conversation-btn" class="btn-icon" title="Nowa rozmowa">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path><line x1="9" y1="9" x2="15" y2="9"></line><line x1="9" y1="13" x2="15" y2="13"></line></svg>
+                            </button>
+                        </div>
+                        <div class="conversations-list" id="conversations-list">
+                            <div class="empty-state">
+                                <p>Brak rozmów</p>
+                                <button class="btn btn-outline btn-small" onclick="document.getElementById('new-conversation-btn').click()">Rozpocznij rozmowę</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Prawy panel - okno czatu -->
+                    <div class="chat-window">
+                        <div id="chat-empty-state" class="chat-empty-state">
+                            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                            <p>Wybierz rozmowę lub rozpocznij nową</p>
+                        </div>
+
+                        <div id="chat-active" class="chat-active" style="display: none;">
+                            <!-- Nagłówek czatu -->
+                            <div class="chat-header">
+                                <div class="chat-header-info">
+                                    <div class="chat-header-avatar" id="chat-header-avatar">?</div>
+                                    <div>
+                                        <div class="chat-header-name" id="chat-header-name">Nazwa</div>
+                                        <div class="chat-header-members" id="chat-header-members"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Wiadomości -->
+                            <div class="chat-messages" id="chat-messages"></div>
+
+                            <!-- Input -->
+                            <div class="chat-input-area">
+                                <form id="chat-form">
+                                    <button type="button" id="media-upload-btn" class="btn-icon" title="Wyślij zdjęcie lub film">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                                    </button>
+                                    <input type="file" id="media-upload-input" accept="image/*,video/*,.gif" style="display: none;" multiple>
+                                    <input type="text" id="chat-input" class="chat-input" placeholder="Napisz wiadomość..." autocomplete="off">
+                                    <button type="submit" class="btn-icon btn-send">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- BLA_BLA_AIR POST FEED - Społeczność -->
+            <section id="feed" class="channel-section">
+                <!-- Sekcja tworzenia posta -->
+                <div class="create-post card">
+                    <h3>O czym chcesz napisać?</h3>
+                    <form id="create-post-form">
+                        <textarea id="post-content-input" class="form-input" placeholder="Podziel się czymś ze społecznością..." required></textarea>
+
+                        <!-- NEW: Przyciski załączników -->
+                        <div class="post-attachments-buttons">
+                            <button type="button" id="add-image-btn" class="btn-attachment" title="Dodaj zdjęcie">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                                    <polyline points="21 15 16 10 5 21"></polyline>
+                                </svg>
+                                Zdjęcie
+                            </button>
+                            <button type="button" id="add-gif-btn" class="btn-attachment" title="Dodaj GIF">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect>
+                                    <line x1="7" y1="2" x2="7" y2="22"></line>
+                                    <line x1="17" y1="2" x2="17" y2="22"></line>
+                                    <line x1="2" y1="12" x2="22" y2="12"></line>
+                                    <line x1="2" y1="7" x2="7" y2="7"></line>
+                                    <line x1="2" y1="17" x2="7" y2="17"></line>
+                                    <line x1="17" y1="17" x2="22" y2="17"></line>
+                                    <line x1="17" y1="7" x2="22" y2="7"></line>
+                                </svg>
+                                GIF
+                            </button>
+                            <button type="button" id="add-video-btn" class="btn-attachment" title="Dodaj film">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polygon points="23 7 16 12 23 17 23 7"></polygon>
+                                    <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+                                </svg>
+                                Film
+                            </button>
+                        </div>
+
+                        <!-- Hidden file inputs -->
+                        <input type="file" id="attachment-image-input" accept="image/*" multiple style="display: none;">
+                        <input type="file" id="attachment-gif-input" accept="image/gif" multiple style="display: none;">
+                        <input type="file" id="attachment-video-input" accept="video/*" multiple style="display: none;">
+
+                        <!-- NEW: Podgląd załączników -->
+                        <div id="attachments-preview" class="attachments-preview"></div>
+
+                        <button type="submit" class="btn btn-primary">Opublikuj</button>
+                    </form>
+                </div>
+
+                <!-- Lista postów -->
+                <div id="feed-list">
+                    <!-- Posty będą tutaj renderowane dynamicznie przez app.js -->
+                </div>
+            </section>
+
+            <section id="gallery" class="channel-section">
+                <div class="gallery-grid">
+                    <div class="gallery-item" onclick="openLightbox('Zdjęcie z lotniska', '#ddd')">
+                        <div class="thumb" style="background-color: #ddd;">Zdjęcie 1</div>
+                    </div>
+                    <div class="gallery-item" onclick="openLightbox('Zdjęcie grupowe', '#ccc')">
+                        <div class="thumb" style="background-color: #ccc;">Zdjęcie 2</div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="training" class="channel-section">
+                <div class="training-layout">
+                    <div class="training-sidebar">
+                        <h3>Wybierz moduł:</h3>
+                        <button class="training-btn active" onclick="showModule(1)">Moduł 1: Podstawy</button>
+                        <button class="training-btn" onclick="showModule(2)">Moduł 2: Bezpieczeństwo</button>
+                        <button class="training-btn" onclick="showModule(3)">Moduł 3: Rezerwacje</button>
+                    </div>
+
+                    <div class="training-content card">
+                        <div id="module-content">
+                            </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- NEW: Sekcja profilu użytkownika -->
+            <section id="profile" class="channel-section">
+                <div class="card">
+                    <h2>Twój profil</h2>
+                    <p class="subtitle">Zarządzaj swoimi danymi osobowymi</p>
+
+                    <!-- Upload avatara -->
+                    <div class="profile-avatar-section">
+                        <div class="profile-avatar-container">
+                            <div id="profile-avatar-preview" class="profile-avatar-preview">
+                                <div class="avatar-placeholder">?</div>
+                            </div>
+                            <div class="profile-avatar-actions">
+                                <label for="avatar-upload" class="btn btn-outline btn-small">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                                    Zmień zdjęcie
+                                </label>
+                                <input type="file" id="avatar-upload" accept="image/*" style="display: none;">
+                                <button type="button" id="remove-avatar-btn" class="btn btn-text btn-small" style="display: none;">Usuń zdjęcie</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form id="profile-form">
+                        <div class="form-group">
+                            <label for="profile-full-name">Imię i nazwisko</label>
+                            <input type="text" id="profile-full-name" class="form-input" placeholder="Jan Kowalski" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="profile-email">Adres e-mail</label>
+                            <input type="email" id="profile-email" class="form-input" placeholder="jan.kowalski@example.com" disabled>
+                            <p class="form-hint">Adres e-mail nie może być zmieniony</p>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Zapisz zmiany</button>
+                    </form>
+                </div>
+
+                <div class="card" style="margin-top: 20px;">
+                    <h3>Zmiana hasła</h3>
+                    <p class="subtitle">Ustaw nowe hasło dla swojego konta</p>
+
+                    <form id="change-password-form">
+                        <div class="form-group">
+                            <label for="new-password">Nowe hasło</label>
+                            <input type="password" id="new-password" class="form-input" placeholder="Minimum 6 znaków" required minlength="6">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="confirm-password">Potwierdź nowe hasło</label>
+                            <input type="password" id="confirm-password" class="form-input" placeholder="Powtórz nowe hasło" required minlength="6">
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Zmień hasło</button>
+                    </form>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <footer class="main-footer">
+        <div class="footer-content">
+            <div class="footer-column">
+                <h3>Skontaktuj się z nami</h3>
+                <p>Masz pytania? Napisz do nas.</p>
+                <form id="contact-form">
+                    <input type="text" id="contact-name" class="form-input footer-input" placeholder="Twoje imię">
+                    <input type="email" id="contact-email" class="form-input footer-input" placeholder="Twój e-mail">
+                    <textarea id="contact-message" class="form-input footer-input" rows="3" placeholder="Wiadomość"></textarea>
+                    <button type="submit" class="btn btn-primary footer-btn">Wyślij wiadomość</button>
+                </form>
+            </div>
+            <div class="footer-column">
+                <h3>Lokalizacja</h3>
+                <p>ul. Kaliskiego 57, Lotnisko Warszawa Babice<br>Hangar 4, 01-476 Warszawa</p>
+                <div class="map-container">
+                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2441.767424667355!2d20.8953!3d52.266!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x471ecba0c4033e07%3A0x6b4c10c4033e07!2sGen.+Sylwestra+Kaliskiego+57%2C+01-476+Warszawa!5e0!3m2!1spl!2spl!4v1600000000000!5m2!1spl!2spl" width="100%" height="250" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© Evair 2025</p>
+            <nav class="footer-nav">
+                <a href="#" id="open-regulations">Regulamin</a> |
+                <a href="#">Polityka prywatności</a>
+            </nav>
+        </div>
+    </footer>
+
+    <div id="lightbox" class="modal hidden">
+        <div class="modal-content lightbox-content">
+            <span class="close-modal" onclick="closeLightbox()">× Zamknij</span>
+            <div id="lightbox-img-placeholder" class="img-placeholder"></div>
+            <p id="lightbox-caption"></p>
+        </div>
+    </div>
+
+    <div id="regulations-modal" class="modal hidden">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2>Regulamin Platformy Evair</h2>
+                <button class="close-modal-btn" onclick="closeRegulations()">Zamknij ✕</button>
+            </div>
+            <div class="modal-body-scroll">
+                <h3>1. Postanowienia ogólne</h3>
+                <p>Platforma służy do wymiany informacji...</p>
+                <h3>2. Kultura wypowiedzi</h3>
+                <p>Wszyscy użytkownicy zobowiązani są do kulturalnego zachowania...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- NEW: Modal logowania i rejestracji -->
+    <div id="auth-modal" class="modal">
+        <div class="modal-card auth-modal-card">
+            <div class="auth-tabs">
+                <button class="auth-tab active" data-tab="login">Zaloguj się</button>
+                <button class="auth-tab" data-tab="register">Zarejestruj się</button>
+            </div>
+
+            <!-- Formularz logowania -->
+            <div id="login-form-container" class="auth-form-container active">
+                <h2>Witaj z powrotem!</h2>
+                <p class="subtitle">Zaloguj się, aby kontynuować</p>
+
+                <form id="login-form">
+                    <div class="form-group">
+                        <label for="login-email">Adres e-mail</label>
+                        <input type="email" id="login-email" class="form-input" placeholder="twoj@email.pl" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="login-password">Hasło</label>
+                        <input type="password" id="login-password" class="form-input" placeholder="Twoje hasło" required>
+                    </div>
+
+                    <div id="login-error" class="error-message"></div>
+
+                    <button type="submit" class="btn btn-primary btn-block">Zaloguj się</button>
+                </form>
+            </div>
+
+            <!-- Formularz rejestracji -->
+            <div id="register-form-container" class="auth-form-container">
+                <h2>Dołącz do nas!</h2>
+                <p class="subtitle">Utwórz nowe konto</p>
+
+                <form id="register-form">
+                    <div class="form-group">
+                        <label for="register-name">Imię i nazwisko</label>
+                        <input type="text" id="register-name" class="form-input" placeholder="Jan Kowalski" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="register-email">Adres e-mail</label>
+                        <input type="email" id="register-email" class="form-input" placeholder="twoj@email.pl" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="register-password">Hasło</label>
+                        <input type="password" id="register-password" class="form-input" placeholder="Minimum 6 znaków" required minlength="6">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="register-confirm">Potwierdź hasło</label>
+                        <input type="password" id="register-confirm" class="form-input" placeholder="Powtórz hasło" required minlength="6">
+                    </div>
+
+                    <div id="register-error" class="error-message"></div>
+
+                    <button type="submit" class="btn btn-primary btn-block">Zarejestruj się</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- NEW: Modal listy osób, które polubiły post/komentarz -->
+    <div id="likes-modal" class="modal hidden">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2>Osoby, które to lubią</h2>
+                <button class="close-modal-btn" onclick="closeLikesModal()">Zamknij ✕</button>
+            </div>
+            <div class="modal-body-scroll">
+                <div id="likes-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- NEW: Popover DM confirmation -->
+    <div id="dm-popover" class="dm-popover hidden">
+        <div class="dm-popover-content">
+            <p id="dm-popover-text">Czy chcesz rozpocząć prywatną rozmowę z <strong id="dm-popover-username"></strong>?</p>
+            <div class="dm-popover-buttons">
+                <button id="dm-popover-confirm" class="btn btn-primary btn-small">Rozpocznij</button>
+                <button id="dm-popover-cancel" class="btn btn-outline btn-small">Anuluj</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- NEW: Modal nowej rozmowy -->
+    <div id="new-conversation-modal" class="modal hidden">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2>Nowa rozmowa</h2>
+                <button class="close-modal-btn" onclick="closeNewConversationModal()">Zamknij ✕</button>
+            </div>
+            <div class="modal-body-scroll">
+                <div class="form-group">
+                    <label>Wyszukaj osobę</label>
+                    <input type="text" id="user-search-input" class="form-input" placeholder="Wpisz imię lub email...">
+                </div>
+                <div id="user-search-results" class="user-search-results"></div>
+
+                <div id="selected-users-section" style="display: none;">
+                    <h4 style="margin-top: 20px;">Wybrane osoby:</h4>
+                    <div id="selected-users-list" class="selected-users-list"></div>
+
+                    <div class="form-group" id="group-name-section" style="display: none;">
+                        <label for="group-name-input">Nazwa grupy</label>
+                        <input type="text" id="group-name-input" class="form-input" placeholder="Np. Zespół projektowy">
+                    </div>
+
+                    <button id="start-conversation-btn" class="btn btn-primary btn-block">Rozpocznij rozmowę</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CHANGED: Dodanie type="module" dla ES6 imports -->
+    <script type="module" src="app.js"></script>
+</body>
+</html>
