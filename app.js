@@ -637,7 +637,8 @@ async function fetchEventParticipants(eventId) {
                 registered_at,
                 user_id,
                 profiles:user_id (
-                    display_name,
+                    full_name,
+                    avatar_url,
                     email
                 )
             `)
@@ -669,13 +670,19 @@ window.openEventParticipantsModal = async function(eventId) {
 
     listContainer.innerHTML = `
         <ul class="participants-list">
-            ${participants.map(p => `
-                <li class="participant-item">
-                    <strong>${p.profiles.display_name || 'Brak nazwy'}</strong>
-                    <span class="participant-email">${p.profiles.email}</span>
-                    <span class="participant-date">Zapisany: ${new Date(p.registered_at).toLocaleDateString('pl-PL')}</span>
-                </li>
-            `).join('')}
+            ${participants.map(p => {
+                const avatarUrl = p.profiles.avatar_url || 'https://via.placeholder.com/50';
+                const fullName = p.profiles.full_name || 'Brak nazwy';
+                return `
+                    <li class="participant-item">
+                        <img src="${avatarUrl}" alt="${fullName}" class="participant-avatar">
+                        <div class="participant-info">
+                            <strong class="participant-name">${fullName}</strong>
+                            <span class="participant-date">Zapisany: ${new Date(p.registered_at).toLocaleDateString('pl-PL')}</span>
+                        </div>
+                    </li>
+                `;
+            }).join('')}
         </ul>
     `;
 };

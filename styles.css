@@ -407,17 +407,34 @@ textarea.input-field {
     padding: 15px;
     border-bottom: 1px solid #eee;
     display: flex;
-    flex-direction: column;
-    gap: 5px;
+    flex-direction: row;
+    gap: 15px;
+    align-items: center;
 }
 
 .participant-item:last-child {
     border-bottom: none;
 }
 
-.participant-item strong {
+.participant-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.participant-info {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    flex-grow: 1;
+}
+
+.participant-name {
     color: var(--text-dark);
     font-size: 16px;
+    font-weight: 600;
 }
 
 .participant-email {
