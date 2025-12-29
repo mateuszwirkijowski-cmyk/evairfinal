@@ -99,14 +99,9 @@ async function updateUiText(elementId, newText) {
     return true;
 }
 
-// Show admin mode indicator
+// Show admin mode indicator (disabled - no longer showing badge)
 function showAdminIndicator() {
-    if (document.querySelector('.admin-badge')) return;
-
-    const adminBadge = document.createElement('div');
-    adminBadge.className = 'admin-badge';
-    adminBadge.innerHTML = '🛡️ ADMIN MODE';
-    document.body.appendChild(adminBadge);
+    // Badge disabled per user request
 }
 
 // Hide admin mode indicator

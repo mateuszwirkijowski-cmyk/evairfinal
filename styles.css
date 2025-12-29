@@ -154,6 +154,33 @@ p { margin-bottom: 1em; }
     flex-shrink: 0;
 }
 
+/* Small admin button next to user profile */
+.btn-admin-users-small {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    background: var(--primary-red);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.btn-admin-users-small:hover {
+    background: var(--primary-red-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(227, 6, 19, 0.3);
+}
+
+.btn-admin-users-small svg {
+    flex-shrink: 0;
+}
+
 .user-profile { display: flex; align-items: center; gap: 10px; }
 .avatar { width: 40px; height: 40px; background-color: #ddd; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: var(--text-grey); }
 
