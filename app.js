@@ -54,6 +54,7 @@ import {
 
 let isAdminUser = false;
 let uiTextsCache = {};
+let currentUserId = null;
 
 // Check if current user is admin
 function checkIfAdmin(userData) {
@@ -180,6 +181,144 @@ function enableChannelEditing() {
 }
 
 // ============================================
+// USER MANAGEMENT FUNCTIONS (ADMIN)
+// ============================================
+
+// Fetch all users from database
+async function fetchUsers() {
+    const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        console.error('Error fetching users:', error);
+        return [];
+    }
+
+    return data;
+}
+
+// Update user role
+async function updateUserRole(userId, newRole) {
+    const { error } = await supabase
+        .from('profiles')
+        .update({ role: newRole })
+        .eq('id', userId);
+
+    if (error) {
+        console.error('Error updating user role:', error);
+        return false;
+    }
+
+    console.log(`[ADMIN] Updated user ${userId} role to: ${newRole}`);
+    return true;
+}
+
+// Send password reset email
+async function handlePasswordReset(email) {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin
+    });
+
+    if (error) {
+        console.error('Error sending password reset:', error);
+        alert('Błąd: Nie udało się wysłać linku do resetowania hasła');
+        return false;
+    }
+
+    alert('Link do resetu hasła wysłany na adres: ' + email);
+    return true;
+}
+
+// Open user management modal
+async function openUserManagementModal() {
+    const modal = document.getElementById('user-management-modal');
+    const tbody = document.getElementById('users-table-body');
+
+    modal.classList.remove('hidden');
+    tbody.innerHTML = '<tr><td colspan="3" style="text-align: center;">Ładowanie...</td></tr>';
+
+    const users = await fetchUsers();
+
+    if (users.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="3" style="text-align: center;">Brak użytkowników</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = users.map(user => {
+        const isCurrentUser = user.id === currentUserId;
+        const avatarUrl = user.avatar_url || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.full_name || user.email)}`;
+
+        return `
+            <tr>
+                <td>
+                    <div class="user-info-cell">
+                        <img src="${avatarUrl}" alt="${user.full_name || user.email}" class="user-avatar-tiny">
+                        <div class="user-details">
+                            <div class="user-full-name">${user.full_name || 'Bez nazwy'}</div>
+                            <div class="user-email">${user.email}</div>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <select
+                        class="role-select"
+                        data-user-id="${user.id}"
+                        ${isCurrentUser ? 'disabled' : ''}
+                        onchange="handleRoleChange('${user.id}', this.value)">
+                        <option value="user" ${user.role === 'user' ? 'selected' : ''}>Użytkownik</option>
+                        <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Administrator</option>
+                    </select>
+                    ${isCurrentUser ? '<span class="current-user-badge">(Ty)</span>' : ''}
+                </td>
+                <td>
+                    <button
+                        class="btn-reset-password"
+                        ${isCurrentUser ? 'disabled' : ''}
+                        onclick="handlePasswordReset('${user.email}')">
+                        Resetuj hasło
+                    </button>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+// Close user management modal
+window.closeUserManagementModal = function() {
+    const modal = document.getElementById('user-management-modal');
+    modal.classList.add('hidden');
+};
+
+// Handle role change
+window.handleRoleChange = async function(userId, newRole) {
+    const success = await updateUserRole(userId, newRole);
+    if (success) {
+        console.log(`[ADMIN] Role changed for user ${userId} to ${newRole}`);
+    } else {
+        await openUserManagementModal();
+    }
+};
+
+// Show admin user management button
+function showAdminUserManagementButton() {
+    const btn = document.getElementById('btn-admin-users');
+    if (btn) {
+        btn.style.display = 'flex';
+        btn.addEventListener('click', openUserManagementModal);
+    }
+}
+
+// Hide admin user management button
+function hideAdminUserManagementButton() {
+    const btn = document.getElementById('btn-admin-users');
+    if (btn) {
+        btn.style.display = 'none';
+    }
+}
+
+// ============================================
 // INICJALIZACJA APLIKACJI
 // ============================================
 document.addEventListener('DOMContentLoaded', async () => {
@@ -196,10 +335,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     // NEW: Sprawdzenie czy użytkownik jest zalogowany
     const userData = await getCurrentUser();
 
+    // Set current user ID
+    if (userData?.user?.id) {
+        currentUserId = userData.user.id;
+    }
+
     // Check if user is admin
     isAdminUser = checkIfAdmin(userData);
     if (isAdminUser) {
         showAdminIndicator();
+        showAdminUserManagementButton();
         console.log('[ADMIN] Admin mode enabled');
 
         // Load UI texts
@@ -243,16 +388,23 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
             currentConversation = null;
 
+            // Set current user ID
+            if (userData?.user?.id) {
+                currentUserId = userData.user.id;
+            }
+
             // Check admin status
             isAdminUser = checkIfAdmin(userData);
             if (isAdminUser) {
                 showAdminIndicator();
+                showAdminUserManagementButton();
                 console.log('[ADMIN] Admin mode enabled');
                 uiTextsCache = await getUiTexts();
                 applyUiTexts();
                 enableChannelEditing();
             } else {
                 hideAdminIndicator();
+                hideAdminUserManagementButton();
             }
 
             // Show app
@@ -277,7 +429,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             // Reset admin state
             isAdminUser = false;
+            currentUserId = null;
             hideAdminIndicator();
+            hideAdminUserManagementButton();
 
             showAuthModal();
             hideMainApp();
