@@ -113,6 +113,19 @@ export async function deletePost(postId) {
     if (error) throw new Error(error.message);
 }
 
+// Aktualizacja posta
+export async function updatePost(postId, content) {
+    const { error } = await supabase
+        .from('blabla_posts')
+        .update({
+            content,
+            updated_at: new Date().toISOString()
+        })
+        .eq('id', postId);
+
+    if (error) throw new Error(error.message);
+}
+
 // ============================================
 // POLUBIENIA POSTÓW (LIKES)
 // ============================================
@@ -273,6 +286,19 @@ export async function deleteComment(commentId) {
     const { error } = await supabase
         .from('blabla_comments')
         .delete()
+        .eq('id', commentId);
+
+    if (error) throw new Error(error.message);
+}
+
+// Aktualizacja komentarza
+export async function updateComment(commentId, content) {
+    const { error } = await supabase
+        .from('blabla_comments')
+        .update({
+            content,
+            updated_at: new Date().toISOString()
+        })
         .eq('id', commentId);
 
     if (error) throw new Error(error.message);

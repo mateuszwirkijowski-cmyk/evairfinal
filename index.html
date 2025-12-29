@@ -198,7 +198,10 @@
                             <label for="event-description">Opis</label>
                             <textarea id="event-description" class="input-field" rows="3" placeholder="Opis wydarzenia..."></textarea>
                         </div>
-                        <button type="submit" class="btn btn-primary">Opublikuj wydarzenie</button>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">Opublikuj wydarzenie</button>
+                            <button type="button" id="cancel-edit-event" class="btn btn-outline" style="display: none;" onclick="cancelEditEvent()">Anuluj</button>
+                        </div>
                     </form>
                 </div>
 

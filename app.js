@@ -34,12 +34,14 @@ import {
     getPosts,
     createPost,
     deletePost,
+    updatePost,
     togglePostLike,
     getPostLikes,
     hasUserLikedPost,
     getComments,
     createComment,
     deleteComment,
+    updateComment,
     toggleCommentLike,
     hasUserLikedComment,
     getCommentLikes,
@@ -382,20 +384,27 @@ async function renderEvents() {
         let actionButton = '';
         let adminButtons = '';
 
-        // User action buttons
-        if (event.isUserRegistered) {
+        // User action buttons - FIXED: Only show "registered" if current user is actually registered
+        if (currentUserId && event.isUserRegistered) {
             actionButton = '<span class="event-badge registered">Jesteś zapisany/a</span>';
-        } else if (event.is_open) {
+        } else if (event.is_open && currentUserId) {
             actionButton = `<button class="btn btn-primary" onclick="signUpForEvent('${event.id}')">Zapisz się</button>`;
-        } else {
+        } else if (!event.is_open) {
             actionButton = '<span class="event-badge closed">Zapisy zamknięte</span>';
         }
 
-        // Admin buttons
+        // Admin buttons - CRITICAL: Only show if user is admin
         if (isAdminUser) {
             const toggleText = event.is_open ? 'Zamknij zapisy' : 'Otwórz zapisy';
             adminButtons = `
                 <div class="event-admin-actions">
+                    <button class="btn-small btn-outline" onclick="editEvent('${event.id}')">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                        </svg>
+                        Edytuj
+                    </button>
                     <button class="btn-small btn-outline" onclick="toggleEventStatus('${event.id}', ${!event.is_open})">${toggleText}</button>
                     <button class="btn-small btn-primary" onclick="openEventParticipantsModal('${event.id}')">Lista osób</button>
                     <button class="btn-small btn-danger" onclick="deleteEvent('${event.id}')">Usuń</button>
@@ -423,6 +432,9 @@ async function renderEvents() {
     }).join('');
 }
 
+// Global variable to track if we're editing an event
+let editingEventId = null;
+
 // Create new event (Admin only)
 async function createEvent(title, eventDate, description) {
     try {
@@ -445,6 +457,83 @@ async function createEvent(title, eventDate, description) {
         alert('Błąd podczas tworzenia wydarzenia.');
         return false;
     }
+}
+
+// Update existing event (Admin only)
+async function updateEvent(eventId, title, eventDate, description) {
+    try {
+        const { error } = await supabase
+            .from('events')
+            .update({
+                title,
+                event_date: eventDate,
+                description
+            })
+            .eq('id', eventId);
+
+        if (error) throw error;
+
+        await renderEvents();
+        return true;
+    } catch (error) {
+        console.error('Error updating event:', error);
+        alert('Błąd podczas aktualizacji wydarzenia.');
+        return false;
+    }
+}
+
+// Edit event - populate form with event data (Admin only)
+window.editEvent = async function(eventId) {
+    try {
+        const { data: event, error } = await supabase
+            .from('events')
+            .select('*')
+            .eq('id', eventId)
+            .single();
+
+        if (error) throw error;
+
+        // Populate form fields
+        document.getElementById('event-title').value = event.title;
+        document.getElementById('event-description').value = event.description || '';
+
+        // Format date for datetime-local input
+        const eventDate = new Date(event.event_date);
+        const formattedDate = eventDate.toISOString().slice(0, 16);
+        document.getElementById('event-date').value = formattedDate;
+
+        // Change form to edit mode
+        editingEventId = eventId;
+        const submitBtn = document.querySelector('#create-event-form button[type="submit"]');
+        const cancelBtn = document.getElementById('cancel-edit-event');
+        const formCard = document.getElementById('admin-event-creator');
+
+        submitBtn.textContent = 'Zapisz zmiany';
+        submitBtn.classList.add('editing');
+        if (cancelBtn) cancelBtn.style.display = 'inline-block';
+        if (formCard) formCard.classList.add('editing-mode');
+
+        // Scroll to form
+        document.getElementById('admin-event-creator').scrollIntoView({ behavior: 'smooth' });
+
+    } catch (error) {
+        console.error('Error loading event for editing:', error);
+        alert('Błąd podczas ładowania wydarzenia.');
+    }
+};
+
+// Cancel edit mode
+window.cancelEditEvent = function() {
+    editingEventId = null;
+    const submitBtn = document.querySelector('#create-event-form button[type="submit"]');
+    const cancelBtn = document.getElementById('cancel-edit-event');
+    const formCard = document.getElementById('admin-event-creator');
+
+    submitBtn.textContent = 'Opublikuj wydarzenie';
+    submitBtn.classList.remove('editing');
+    if (cancelBtn) cancelBtn.style.display = 'none';
+    if (formCard) formCard.classList.remove('editing-mode');
+    document.getElementById('create-event-form').reset();
 }
 
 // Sign up user for event
@@ -1127,7 +1216,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    // Handle event creation form submission
+    // Handle event creation/update form submission
     const createEventForm = document.getElementById('create-event-form');
     if (createEventForm) {
         createEventForm.addEventListener('submit', async (e) => {
@@ -1142,10 +1231,21 @@ document.addEventListener('DOMContentLoaded', async () => {
                 return;
             }
 
-            const success = await createEvent(title, eventDate, description);
-            if (success) {
-                createEventForm.reset();
-                alert('Wydarzenie zostało utworzone!');
+            let success = false;
+            if (editingEventId) {
+                // Update existing event
+                success = await updateEvent(editingEventId, title, eventDate, description);
+                if (success) {
+                    cancelEditEvent();
+                    alert('Wydarzenie zostało zaktualizowane!');
+                }
+            } else {
+                // Create new event
+                success = await createEvent(title, eventDate, description);
+                if (success) {
+                    createEventForm.reset();
+                    alert('Wydarzenie zostało utworzone!');
+                }
             }
         });
     }
@@ -2099,11 +2199,21 @@ document.addEventListener('DOMContentLoaded', async () => {
                             </div>
                         </div>
                         ${(isAuthor || isAdminUser) ? `
-                            <button class="btn-text btn-delete-post" onclick="deletePostById('${post.id}')">Usuń</button>
+                            <div class="post-actions-menu">
+                                <button class="btn-text btn-edit-post" onclick="editPost('${post.id}')">Edytuj</button>
+                                <button class="btn-text btn-delete-post" onclick="deletePostById('${post.id}')">Usuń</button>
+                            </div>
                         ` : ''}
                     </div>
 
-                    <div class="post-content">${escapeHtml(post.content)}</div>
+                    <div class="post-content" id="post-content-${post.id}">${escapeHtml(post.content)}</div>
+                    <div class="post-content-edit" id="post-content-edit-${post.id}" style="display: none;">
+                        <textarea class="edit-post-textarea" id="edit-post-textarea-${post.id}">${escapeHtml(post.content)}</textarea>
+                        <div class="edit-actions">
+                            <button class="btn btn-primary btn-small" onclick="savePostEdit('${post.id}')">Zapisz</button>
+                            <button class="btn btn-outline btn-small" onclick="cancelPostEdit('${post.id}')">Anuluj</button>
+                        </div>
+                    </div>
 
                     ${post.attachments && post.attachments.length > 0 ? `
                         <div class="post-attachments">
@@ -2269,6 +2379,65 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     };
 
+    // Edit post - show edit form
+    window.editPost = function(postId) {
+        const contentDiv = document.getElementById(`post-content-${postId}`);
+        const editDiv = document.getElementById(`post-content-edit-${postId}`);
+        const postCard = document.querySelector(`[data-post-id="${postId}"]`);
+
+        if (contentDiv && editDiv && postCard) {
+            contentDiv.style.display = 'none';
+            editDiv.style.display = 'block';
+            postCard.classList.add('editing');
+
+            // Focus on textarea
+            const textarea = document.getElementById(`edit-post-textarea-${postId}`);
+            if (textarea) {
+                textarea.focus();
+                textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+            }
+        }
+    };
+
+    // Save post edit
+    window.savePostEdit = async function(postId) {
+        const textarea = document.getElementById(`edit-post-textarea-${postId}`);
+        const newContent = textarea?.value.trim();
+
+        if (!newContent) {
+            alert('Post nie może być pusty');
+            return;
+        }
+
+        try {
+            await updatePost(postId, newContent);
+            await loadPosts();
+        } catch (error) {
+            console.error('Błąd aktualizacji posta:', error);
+            alert('Nie udało się zaktualizować posta');
+        }
+    };
+
+    // Cancel post edit
+    window.cancelPostEdit = function(postId) {
+        const contentDiv = document.getElementById(`post-content-${postId}`);
+        const editDiv = document.getElementById(`post-content-edit-${postId}`);
+        const postCard = document.querySelector(`[data-post-id="${postId}"]`);
+
+        if (contentDiv && editDiv && postCard) {
+            contentDiv.style.display = 'block';
+            editDiv.style.display = 'none';
+            postCard.classList.remove('editing');
+
+            // Reset textarea to original content
+            const textarea = document.getElementById(`edit-post-textarea-${postId}`);
+            const originalContent = contentDiv.textContent;
+            if (textarea && originalContent) {
+                textarea.value = originalContent;
+            }
+        }
+    };
+
     // ============================================
     // KOMENTARZE
     // ============================================
@@ -2324,16 +2493,35 @@ document.addEventListener('DOMContentLoaded', async () => {
                         ${avatar ? `<img src="${avatar}" alt="${authorName}">` : `<div class="avatar-initials">${getInitials(authorName)}</div>`}
                     </div>
                     <div class="comment-content-wrapper">
-                        <div class="comment-bubble">
+                        <div class="comment-bubble" id="comment-bubble-${comment.id}">
                             <div class="comment-author" style="cursor: pointer;" onclick="startDirectChatWithUser('${comment.author_id}', event)" title="Kliknij, aby rozpocząć rozmowę">${escapeHtml(authorName)}</div>
-                            <div class="comment-text">${escapeHtml(comment.content)}</div>
+                            <div class="comment-text" id="comment-text-${comment.id}">${escapeHtml(comment.content)}</div>
+                        </div>
+                        <div class="comment-edit-form" id="comment-edit-${comment.id}" style="display: none;">
+                            <input type="text" class="comment-edit-input" id="comment-edit-input-${comment.id}" value="${escapeHtml(comment.content)}">
+                            <div class="comment-edit-actions">
+                                <button class="btn-icon-save" onclick="saveCommentEdit('${comment.id}', '${postId}')" title="Zapisz">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="20 6 9 17 4 12"></polyline>
+                                    </svg>
+                                </button>
+                                <button class="btn-icon-cancel" onclick="cancelCommentEdit('${comment.id}')" title="Anuluj">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                                    </svg>
+                                </button>
+                            </div>
                         </div>
                         <div class="comment-meta">
                             <span class="comment-time">${timeStr}</span>
                             <button class="btn-comment-like ${hasLiked ? 'liked' : ''}" onclick="toggleLikeComment('${comment.id}', '${postId}')">
                                 Lubię to ${comment.likes_count > 0 ? `<span style="cursor: pointer;" onclick="event.stopPropagation(); showCommentLikes('${comment.id}', event);" title="Zobacz kto polubił">(${comment.likes_count})</span>` : ''}
                             </button>
-                            ${(isAuthor || isAdminUser) ? `<button class="btn-delete-comment" onclick="deleteCommentById('${comment.id}', '${postId}')">Usuń</button>` : ''}
+                            ${(isAuthor || isAdminUser) ? `
+                                <button class="btn-edit-comment" onclick="editComment('${comment.id}')">Edytuj</button>
+                                <button class="btn-delete-comment" onclick="deleteCommentById('${comment.id}', '${postId}')">Usuń</button>
+                            ` : ''}
                         </div>
                     </div>
                 </div>
@@ -2405,6 +2593,71 @@ document.addEventListener('DOMContentLoaded', async () => {
         } catch (error) {
             console.error('Błąd usuwania komentarza:', error);
             alert('Nie udało się usunąć komentarza');
+        }
+    };
+
+    // Edit comment - show edit form
+    window.editComment = function(commentId) {
+        const bubbleDiv = document.getElementById(`comment-bubble-${commentId}`);
+        const editDiv = document.getElementById(`comment-edit-${commentId}`);
+        const commentItem = document.querySelector(`[data-comment-id="${commentId}"]`);
+
+        if (bubbleDiv && editDiv && commentItem) {
+            bubbleDiv.style.display = 'none';
+            editDiv.style.display = 'flex';
+            commentItem.classList.add('editing');
+
+            // Focus on input
+            const input = document.getElementById(`comment-edit-input-${commentId}`);
+            if (input) {
+                input.focus();
+                input.setSelectionRange(input.value.length, input.value.length);
+            }
+        }
+    };
+
+    // Save comment edit
+    window.saveCommentEdit = async function(commentId, postId) {
+        const input = document.getElementById(`comment-edit-input-${commentId}`);
+        const newContent = input?.value.trim();
+
+        if (!newContent) {
+            alert('Komentarz nie może być pusty');
+            return;
+        }
+
+        try {
+            await updateComment(commentId, newContent);
+            await loadComments(postId);
+
+            // Otwórz ponownie komentarze
+            const commentsSection = document.getElementById(`comments-${postId}`);
+            commentsSection.style.display = 'block';
+            await loadComments(postId);
+
+        } catch (error) {
+            console.error('Błąd aktualizacji komentarza:', error);
+            alert('Nie udało się zaktualizować komentarza');
+        }
+    };
+
+    // Cancel comment edit
+    window.cancelCommentEdit = function(commentId) {
+        const bubbleDiv = document.getElementById(`comment-bubble-${commentId}`);
+        const editDiv = document.getElementById(`comment-edit-${commentId}`);
+        const commentItem = document.querySelector(`[data-comment-id="${commentId}"]`);
+
+        if (bubbleDiv && editDiv && commentItem) {
+            bubbleDiv.style.display = 'block';
+            editDiv.style.display = 'none';
+            commentItem.classList.remove('editing');
+
+            // Reset input to original content
+            const input = document.getElementById(`comment-edit-input-${commentId}`);
+            const originalContent = document.getElementById(`comment-text-${commentId}`)?.textContent;
+            if (input && originalContent) {
+                input.value = originalContent;
+            }
         }
     };
 

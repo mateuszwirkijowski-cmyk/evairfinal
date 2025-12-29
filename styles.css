@@ -2131,6 +2131,150 @@ textarea.input-field {
     color: var(--text-dark);
 }
 
+/* ============================================
+   EDITING STATES - Visual Feedback
+   ============================================ */
+
+/* Event form editing mode */
+.event-creator-card.editing-mode {
+    background: linear-gradient(135deg, #fff9e6 0%, #ffffff 100%);
+    border-color: #ffa500;
+}
+
+.form-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+/* Post editing */
+.post-card.editing {
+    background: #fffef5;
+    border-left: 3px solid #ffa500;
+}
+
+.post-content-edit {
+    margin: 15px 0;
+}
+
+.edit-post-textarea {
+    width: 100%;
+    min-height: 100px;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+    font-family: inherit;
+    resize: vertical;
+    margin-bottom: 10px;
+}
+
+.edit-post-textarea:focus {
+    outline: none;
+    border-color: var(--primary-red);
+    box-shadow: 0 0 0 3px rgba(227, 6, 19, 0.1);
+}
+
+.edit-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.post-actions-menu {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-text.btn-edit-post,
+.btn-text.btn-delete-post {
+    padding: 4px 8px;
+    font-size: 13px;
+}
+
+.btn-text.btn-edit-post:hover {
+    color: #ffa500;
+}
+
+/* Comment editing */
+.comment-item.editing {
+    background: #fffef5;
+}
+
+.comment-edit-form {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 18px;
+    flex: 1;
+}
+
+.comment-edit-input {
+    flex: 1;
+    border: none;
+    outline: none;
+    padding: 4px 8px;
+    font-size: 14px;
+    font-family: inherit;
+}
+
+.comment-edit-actions {
+    display: flex;
+    gap: 4px;
+}
+
+.btn-icon-save,
+.btn-icon-cancel {
+    border: none;
+    background: none;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background 0.2s;
+}
+
+.btn-icon-save {
+    color: #28a745;
+}
+
+.btn-icon-save:hover {
+    background: #d4edda;
+}
+
+.btn-icon-cancel {
+    color: #dc3545;
+}
+
+.btn-icon-cancel:hover {
+    background: #f8d7da;
+}
+
+.btn-edit-comment {
+    background: none;
+    border: none;
+    color: var(--text-grey);
+    font-size: 12px;
+    cursor: pointer;
+    padding: 2px 8px;
+}
+
+.btn-edit-comment:hover {
+    color: #ffa500;
+    text-decoration: underline;
+}
+
+/* Editing button for events */
+.btn-small svg {
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 3px;
+}
+
 /* Responsywność dla BlaBlaAir */
 @media (max-width: 768px) {
     .post-attachments-buttons {
