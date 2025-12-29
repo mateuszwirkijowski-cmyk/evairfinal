@@ -373,6 +373,16 @@ async function renderEvents() {
     const eventsList = document.getElementById('events-list');
     const events = await fetchEvents();
 
+    // STRICT: Ensure admin form visibility is controlled every time we render
+    const adminEventCreator = document.getElementById('admin-event-creator');
+    if (adminEventCreator) {
+        if (isAdminUser === true) {
+            adminEventCreator.style.display = 'block';
+        } else {
+            adminEventCreator.style.display = 'none';
+        }
+    }
+
     if (events.length === 0) {
         eventsList.innerHTML = '<p class="empty-state">Brak nadchodzących wydarzeń.</p>';
         return;
@@ -393,8 +403,9 @@ async function renderEvents() {
             actionButton = '<span class="event-badge closed">Zapisy zamknięte</span>';
         }
 
-        // Admin buttons - CRITICAL: Only show if user is admin
-        if (isAdminUser) {
+        // STRICT ADMIN CHECK: Only show admin buttons if isAdminUser is explicitly true
+        // This check prevents any HTML injection or display of admin controls for non-admin users
+        if (isAdminUser === true) {
             const toggleText = event.is_open ? 'Zamknij zapisy' : 'Otwórz zapisy';
             adminButtons = `
                 <div class="event-admin-actions">
@@ -673,9 +684,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         currentUserId = userData.user.id;
     }
 
-    // Check if user is admin
+    // Check if user is admin (STRICT: Use explicit true check)
     isAdminUser = checkIfAdmin(userData);
-    if (isAdminUser) {
+    if (isAdminUser === true) {
         showAdminIndicator();
         showAdminUserManagementButton();
         console.log('[ADMIN] Admin mode enabled');
@@ -688,6 +699,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // Make channel names editable
         enableChannelEditing();
+    } else {
+        // Ensure admin features are hidden for non-admin users
+        hideAdminIndicator();
+        hideAdminUserManagementButton();
     }
 
     if (!userData) {
@@ -728,7 +743,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             // Check admin status
             isAdminUser = checkIfAdmin(userData);
-            if (isAdminUser) {
+            if (isAdminUser === true) {
                 showAdminIndicator();
                 showAdminUserManagementButton();
                 console.log('[ADMIN] Admin mode enabled');
@@ -736,7 +751,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 applyUiTexts();
                 enableChannelEditing();
 
-                // Show admin event creator
+                // STRICT: Show admin event creator
                 const adminEventCreator = document.getElementById('admin-event-creator');
                 if (adminEventCreator) {
                     adminEventCreator.style.display = 'block';
@@ -745,7 +760,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 hideAdminIndicator();
                 hideAdminUserManagementButton();
 
-                // Hide admin event creator
+                // STRICT: Hide admin event creator for non-admins
                 const adminEventCreator = document.getElementById('admin-event-creator');
                 if (adminEventCreator) {
                     adminEventCreator.style.display = 'none';
@@ -777,6 +792,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             currentUserId = null;
             hideAdminIndicator();
             hideAdminUserManagementButton();
+
+            // STRICT: Hide admin event creator on logout
+            const adminEventCreator = document.getElementById('admin-event-creator');
+            if (adminEventCreator) {
+                adminEventCreator.style.display = 'none';
+            }
 
             showAuthModal();
             hideMainApp();
@@ -1208,11 +1229,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     // EVENTS - INITIALIZATION
     // ============================================
 
-    // Show admin event creator if user is admin
-    if (isAdminUser) {
+    // STRICT: Show admin event creator ONLY if user is explicitly admin
+    if (isAdminUser === true) {
         const adminEventCreator = document.getElementById('admin-event-creator');
         if (adminEventCreator) {
             adminEventCreator.style.display = 'block';
+        }
+    } else {
+        // Explicitly hide for non-admins
+        const adminEventCreator = document.getElementById('admin-event-creator');
+        if (adminEventCreator) {
+            adminEventCreator.style.display = 'none';
         }
     }
 
