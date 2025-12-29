@@ -205,10 +205,73 @@ p { margin-bottom: 1em; }
 #chat-input { flex-grow: 1; padding: 12px; border: 1px solid #ccc; border-radius: 30px; font-size: 16px; }
 
 /* GALERIA */
-.gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; }
-.gallery-item { cursor: pointer; transition: transform 0.2s; }
-.gallery-item:hover { transform: scale(1.02); }
-.thumb { height: 150px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #555; font-weight: bold; border: 1px solid #ddd; }
+.gallery-user-section {
+    margin-bottom: 40px;
+}
+
+.gallery-user-header {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.gallery-user-header h3 {
+    font-size: 24px;
+    font-weight: bold;
+    color: var(--text-dark);
+    margin: 0;
+    white-space: nowrap;
+}
+
+.header-line {
+    flex: 1;
+    height: 2px;
+    background: linear-gradient(to right, var(--primary-red), transparent);
+}
+
+.gallery-photo-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 15px;
+}
+
+.gallery-photo-item {
+    position: relative;
+    aspect-ratio: 1;
+    overflow: hidden;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.gallery-photo-item:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+}
+
+.gallery-photo-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.gallery-photo-item:hover img {
+    transform: scale(1.05);
+}
+
+@media (max-width: 768px) {
+    .gallery-photo-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 10px;
+    }
+
+    .gallery-user-header h3 {
+        font-size: 20px;
+    }
+}
 
 /* SZKOLENIA */
 .training-layout { display: flex; gap: 30px; flex-wrap: wrap; }

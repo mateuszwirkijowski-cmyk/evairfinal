@@ -1832,4 +1832,132 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     })();
 
+    // ============================================
+    // GALERIA ZDJĘĆ - DYNAMICZNE ŁADOWANIE
+    // ============================================
+
+    async function renderGallery() {
+        const userData = await getCurrentUser();
+        if (!userData) return;
+
+        try {
+            const posts = await getPosts(1000);
+
+            const imagePostsMap = new Map();
+
+            posts.forEach(post => {
+                if (post.attachments && post.attachments.length > 0) {
+                    const imageAttachments = post.attachments.filter(
+                        att => att.type === 'image' || att.type === 'gif'
+                    );
+
+                    if (imageAttachments.length > 0) {
+                        const authorId = post.author_id;
+
+                        if (!imagePostsMap.has(authorId)) {
+                            imagePostsMap.set(authorId, {
+                                author: post.author,
+                                images: [],
+                                mostRecentDate: post.created_at
+                            });
+                        }
+
+                        const authorData = imagePostsMap.get(authorId);
+
+                        imageAttachments.forEach(att => {
+                            authorData.images.push({
+                                url: att.url,
+                                date: post.created_at,
+                                filename: att.filename
+                            });
+                        });
+
+                        if (new Date(post.created_at) > new Date(authorData.mostRecentDate)) {
+                            authorData.mostRecentDate = post.created_at;
+                        }
+                    }
+                }
+            });
+
+            const sortedAuthors = Array.from(imagePostsMap.entries())
+                .sort((a, b) => new Date(b[1].mostRecentDate) - new Date(a[1].mostRecentDate));
+
+            const galleryContainer = document.getElementById('gallery');
+            galleryContainer.innerHTML = '';
+
+            if (sortedAuthors.length === 0) {
+                galleryContainer.innerHTML = '<div class="empty-state-feed"><p>Brak zdjęć w galerii. Bądź pierwszą osobą, która doda zdjęcie!</p></div>';
+                return;
+            }
+
+            sortedAuthors.forEach(([authorId, authorData]) => {
+                const userName = authorData.author?.full_name || authorData.author?.email || 'Użytkownik';
+
+                authorData.images.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+                const userSection = document.createElement('div');
+                userSection.className = 'gallery-user-section';
+
+                const userHeader = document.createElement('div');
+                userHeader.className = 'gallery-user-header';
+                userHeader.innerHTML = `
+                    <h3>${escapeHtml(userName)}</h3>
+                    <div class="header-line"></div>
+                `;
+
+                const photoGrid = document.createElement('div');
+                photoGrid.className = 'gallery-photo-grid';
+
+                authorData.images.forEach(image => {
+                    const photoItem = document.createElement('div');
+                    photoItem.className = 'gallery-photo-item';
+
+                    const formattedDate = new Date(image.date).toLocaleString('pl-PL', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+
+                    photoItem.innerHTML = `
+                        <img src="${image.url}" alt="${escapeHtml(image.filename)}" title="${formattedDate}">
+                    `;
+
+                    photoItem.addEventListener('click', () => {
+                        openImageModal(image.url);
+                    });
+
+                    photoGrid.appendChild(photoItem);
+                });
+
+                userSection.appendChild(userHeader);
+                userSection.appendChild(photoGrid);
+                galleryContainer.appendChild(userSection);
+            });
+
+        } catch (error) {
+            console.error('Błąd ładowania galerii:', error);
+            const galleryContainer = document.getElementById('gallery');
+            galleryContainer.innerHTML = '<div class="empty-state-feed"><p>Wystąpił błąd podczas ładowania galerii.</p></div>';
+        }
+    }
+
+    feedNavButtons.forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const target = btn.getAttribute('data-target');
+            if (target === 'gallery') {
+                const userData = await getCurrentUser();
+                if (userData) {
+                    await renderGallery();
+                }
+            }
+        });
+    });
+
+    const galleryNavBtn = document.querySelector('.nav-btn[data-target="gallery"]');
+    if (galleryNavBtn && galleryNavBtn.classList.contains('active')) {
+        renderGallery();
+    }
+
 });
