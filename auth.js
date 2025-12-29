@@ -44,9 +44,19 @@ async function loadUserProfile(userId) {
         .eq('id', userId)
         .maybeSingle();
 
-    if (data) {
-        currentProfile = data;
+    if (error) {
+        console.error('[AUTH] Error loading user profile:', error);
+        console.error('[AUTH] User ID:', userId);
+        return null;
     }
+
+    if (!data) {
+        console.warn('[AUTH] No profile found for user:', userId);
+        return null;
+    }
+
+    console.log('[AUTH] Profile loaded successfully:', data);
+    currentProfile = data;
     return currentProfile;
 }
 
