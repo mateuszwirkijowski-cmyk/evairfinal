@@ -442,8 +442,19 @@
     <div id="lightbox" class="modal hidden">
         <div class="modal-content lightbox-content">
             <span class="close-modal" onclick="closeLightbox()">× Zamknij</span>
+            <button class="lightbox-nav-btn lightbox-prev" id="lightbox-prev" onclick="changeLightboxImage(-1)" aria-label="Poprzednie zdjęcie">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="15 18 9 12 15 6"></polyline>
+                </svg>
+            </button>
+            <button class="lightbox-nav-btn lightbox-next" id="lightbox-next" onclick="changeLightboxImage(1)" aria-label="Następne zdjęcie">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+            </button>
             <div id="lightbox-img-placeholder" class="img-placeholder"></div>
             <p id="lightbox-caption"></p>
+            <p id="lightbox-date"></p>
         </div>
     </div>
 

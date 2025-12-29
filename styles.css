@@ -295,14 +295,80 @@ p { margin-bottom: 1em; }
 /* MODALE */
 .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 2000; display: flex; justify-content: center; align-items: center; }
 .modal.hidden { display: none; }
-.lightbox-content { width: 90%; max-width: 800px; position: relative; }
-.img-placeholder { width: 100%; height: 300px; background: #fff; display: flex; align-items: center; justify-content: center; font-size: 24px; }
-#lightbox-caption { color: white; margin-top: 10px; text-align: center; }
+.lightbox-content { width: 90%; max-width: 900px; position: relative; }
+.img-placeholder { width: 100%; min-height: 300px; background: #000; display: flex; align-items: center; justify-content: center; font-size: 24px; border-radius: 8px; overflow: hidden; }
+#lightbox-caption { color: white; margin-top: 15px; text-align: center; font-size: 20px; font-weight: 600; }
+#lightbox-date { color: rgba(255, 255, 255, 0.7); margin-top: 5px; text-align: center; font-size: 14px; }
 .modal-card { background: white; width: 90%; max-width: 600px; border-radius: 8px; padding: 25px; position: relative; max-height: 90vh; display: flex; flex-direction: column; }
 .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
 .modal-body-scroll { overflow-y: auto; flex-grow: 1; padding-right: 10px; }
 .close-modal-btn { background: none; border: none; font-size: 20px; cursor: pointer; }
-.close-modal { position: absolute; top: -30px; right: 0; color: white; cursor: pointer; font-size: 20px; }
+.close-modal { position: absolute; top: -30px; right: 0; color: white; cursor: pointer; font-size: 20px; z-index: 10; background: rgba(0,0,0,0.5); padding: 8px 16px; border-radius: 6px; transition: background 0.2s; }
+.close-modal:hover { background: rgba(0,0,0,0.8); }
+
+.lightbox-nav-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255, 255, 255, 0.9);
+    border: none;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 10;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.lightbox-nav-btn:hover:not(:disabled) {
+    background: white;
+    transform: translateY(-50%) scale(1.1);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.3);
+}
+
+.lightbox-nav-btn:disabled {
+    opacity: 0.3;
+    cursor: default;
+}
+
+.lightbox-prev {
+    left: 20px;
+}
+
+.lightbox-next {
+    right: 20px;
+}
+
+.lightbox-nav-btn svg {
+    color: var(--text-dark);
+}
+
+@media (max-width: 768px) {
+    .lightbox-nav-btn {
+        width: 40px;
+        height: 40px;
+    }
+
+    .lightbox-prev {
+        left: 10px;
+    }
+
+    .lightbox-next {
+        right: 10px;
+    }
+
+    #lightbox-caption {
+        font-size: 18px;
+    }
+
+    #lightbox-date {
+        font-size: 12px;
+    }
+}
 
 /* NEW: DM Popover - small confirmation popup */
 .dm-popover {
