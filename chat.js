@@ -2,7 +2,7 @@
 // MODUŁ SYSTEMU CZATU
 // ============================================
 
-import { supabase, callEdgeFunction } from './auth.js';
+import { supabase } from './auth.js';
 
 let currentConversationId = null;
 let messageSubscription = null;
@@ -107,22 +107,42 @@ export async function createConversation(creatorId, memberIds, isGroup = false, 
         }
     }
 
-    // Utwórz konwersację przez Edge Function (omija preview proxy problem)
-    console.log('[CHAT] Creating conversation via Edge Function...');
+    // Utwórz konwersację bezpośrednio przez Supabase client
+    console.log('[CHAT] Creating conversation via Supabase client...');
 
-    try {
-        const result = await callEdgeFunction('chat-operations', '/create-conversation', {
-            memberIds,
-            isGroup,
-            groupName
-        });
+    const { data: conversation, error: convError } = await supabase
+        .from('conversations')
+        .insert({
+            name: groupName || null,
+            is_group: isGroup || false,
+            created_by: creatorId
+        })
+        .select()
+        .single();
 
-        console.log('[CHAT] Conversation created successfully:', result.conversation.id);
-        return result.conversation;
-    } catch (error) {
-        console.error('[CHAT] Error creating conversation:', error);
-        throw new Error(`Błąd tworzenia rozmowy: ${error.message}`);
+    if (convError) {
+        console.error('[CHAT] Error creating conversation:', convError);
+        throw new Error(`Błąd tworzenia konwersacji: ${convError.message}`);
     }
+
+    // Dodaj wszystkich członków (w tym twórcę)
+    const allMemberIds = [creatorId, ...memberIds.filter(id => id !== creatorId)];
+    const members = allMemberIds.map(userId => ({
+        conversation_id: conversation.id,
+        user_id: userId
+    }));
+
+    const { error: membersError } = await supabase
+        .from('conversation_members')
+        .insert(members);
+
+    if (membersError) {
+        console.error('[CHAT] Error adding members:', membersError);
+        throw new Error(`Błąd dodawania członków: ${membersError.message}`);
+    }
+
+    console.log('[CHAT] Conversation created successfully:', conversation.id);
+    return conversation;
 }
 
 // Znajdź istniejącą prywatną konwersację między dwoma użytkownikami
@@ -242,26 +262,31 @@ export async function getMessages(conversationId, limit = 50) {
 
 // Wysłanie wiadomości tekstowej
 export async function sendMessage(conversationId, senderId, content) {
-    console.log('[CHAT] Sending message via Edge Function...');
+    console.log('[CHAT] Sending message via Supabase client...');
 
-    try {
-        const result = await callEdgeFunction('chat-operations', '/send-message', {
-            conversationId,
-            content
-        });
+    const { data: message, error: msgError } = await supabase
+        .from('messages')
+        .insert({
+            conversation_id: conversationId,
+            sender_id: senderId,
+            content: content
+        })
+        .select()
+        .single();
 
-        return result.message;
-    } catch (error) {
-        console.error('[CHAT] Error sending message:', error);
-        throw new Error(`Błąd wysyłania wiadomości: ${error.message}`);
+    if (msgError) {
+        console.error('[CHAT] Error sending message:', msgError);
+        throw new Error(`Błąd wysyłania wiadomości: ${msgError.message}`);
     }
+
+    return message;
 }
 
 // Wysłanie wiadomości z mediami
 export async function sendMediaMessage(conversationId, senderId, file, content = '') {
-    console.log('[CHAT] Uploading media and sending via Edge Function...');
+    console.log('[CHAT] Uploading media and sending via Supabase client...');
 
-    // Upload pliku do storage (działa normalnie - nie potrzebuje auth w header)
+    // Upload pliku do storage
     const fileExt = file.name.split('.').pop();
     const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
     const filePath = `${conversationId}/${fileName}`;
@@ -285,20 +310,25 @@ export async function sendMediaMessage(conversationId, senderId, file, content =
         mediaType = 'gif';
     }
 
-    // Wyślij wiadomość przez Edge Function
-    try {
-        const result = await callEdgeFunction('chat-operations', '/send-message', {
-            conversationId,
-            content,
-            mediaUrl: urlData.publicUrl,
-            mediaType
-        });
+    // Wyślij wiadomość bezpośrednio przez Supabase client
+    const { data: message, error: msgError } = await supabase
+        .from('messages')
+        .insert({
+            conversation_id: conversationId,
+            sender_id: senderId,
+            content: content || '',
+            media_url: urlData.publicUrl,
+            media_type: mediaType
+        })
+        .select()
+        .single();
 
-        return result.message;
-    } catch (error) {
-        console.error('[CHAT] Error sending media message:', error);
-        throw new Error(`Błąd wysyłania wiadomości z media: ${error.message}`);
+    if (msgError) {
+        console.error('[CHAT] Error sending media message:', msgError);
+        throw new Error(`Błąd wysyłania wiadomości z media: ${msgError.message}`);
     }
+
+    return message;
 }
 
 // ============================================
