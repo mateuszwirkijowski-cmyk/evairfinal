@@ -49,6 +49,137 @@ import {
 } from './blabla.js';
 
 // ============================================
+// ADMIN FUNCTIONS
+// ============================================
+
+let isAdminUser = false;
+let uiTextsCache = {};
+
+// Check if current user is admin
+function checkIfAdmin(userData) {
+    return userData?.profile?.role === 'admin';
+}
+
+// Get UI texts from database
+async function getUiTexts() {
+    const { data, error } = await supabase
+        .from('ui_texts')
+        .select('*');
+
+    if (error) {
+        console.error('Error fetching UI texts:', error);
+        return {};
+    }
+
+    const texts = {};
+    data.forEach(item => {
+        texts[item.element_id] = item.content;
+    });
+    return texts;
+}
+
+// Update UI text in database
+async function updateUiText(elementId, newText) {
+    const { error } = await supabase
+        .from('ui_texts')
+        .upsert({
+            element_id: elementId,
+            content: newText
+        }, {
+            onConflict: 'element_id'
+        });
+
+    if (error) {
+        console.error('Error updating UI text:', error);
+        return false;
+    }
+
+    uiTextsCache[elementId] = newText;
+    return true;
+}
+
+// Show admin mode indicator
+function showAdminIndicator() {
+    if (document.querySelector('.admin-badge')) return;
+
+    const adminBadge = document.createElement('div');
+    adminBadge.className = 'admin-badge';
+    adminBadge.innerHTML = '🛡️ ADMIN MODE';
+    document.body.appendChild(adminBadge);
+}
+
+// Hide admin mode indicator
+function hideAdminIndicator() {
+    const badge = document.querySelector('.admin-badge');
+    if (badge) badge.remove();
+}
+
+// Apply UI texts to navigation buttons
+function applyUiTexts() {
+    const navButtons = {
+        'feed': 'channel_feed',
+        'gallery': 'channel_gallery',
+        'blabla': 'channel_blabla',
+        'events': 'channel_events',
+        'training': 'channel_training'
+    };
+
+    Object.keys(navButtons).forEach(target => {
+        const button = document.querySelector(`.nav-btn[data-target="${target}"]`);
+        const elementId = navButtons[target];
+
+        if (button && uiTextsCache[elementId]) {
+            const textElement = button.querySelector('.nav-text');
+            if (textElement) {
+                textElement.textContent = uiTextsCache[elementId];
+            }
+        }
+    });
+}
+
+// Enable channel name editing for admins
+function enableChannelEditing() {
+    const navButtons = {
+        'feed': 'channel_feed',
+        'gallery': 'channel_gallery',
+        'blabla': 'channel_blabla',
+        'events': 'channel_events',
+        'training': 'channel_training'
+    };
+
+    Object.keys(navButtons).forEach(target => {
+        const button = document.querySelector(`.nav-btn[data-target="${target}"]`);
+        const elementId = navButtons[target];
+
+        if (button) {
+            const textElement = button.querySelector('.nav-text');
+            if (textElement) {
+                textElement.contentEditable = 'true';
+                textElement.style.cursor = 'text';
+                textElement.title = 'Kliknij aby edytować (tylko dla admina)';
+
+                textElement.addEventListener('blur', async () => {
+                    const newText = textElement.textContent.trim();
+                    if (newText && newText !== uiTextsCache[elementId]) {
+                        const success = await updateUiText(elementId, newText);
+                        if (success) {
+                            console.log(`[ADMIN] Updated ${elementId} to: ${newText}`);
+                        }
+                    }
+                });
+
+                textElement.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        textElement.blur();
+                    }
+                });
+            }
+        }
+    });
+}
+
+// ============================================
 // INICJALIZACJA APLIKACJI
 // ============================================
 document.addEventListener('DOMContentLoaded', async () => {
@@ -64,6 +195,22 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // NEW: Sprawdzenie czy użytkownik jest zalogowany
     const userData = await getCurrentUser();
+
+    // Check if user is admin
+    isAdminUser = checkIfAdmin(userData);
+    if (isAdminUser) {
+        showAdminIndicator();
+        console.log('[ADMIN] Admin mode enabled');
+
+        // Load UI texts
+        uiTextsCache = await getUiTexts();
+
+        // Apply UI texts to navigation
+        applyUiTexts();
+
+        // Make channel names editable
+        enableChannelEditing();
+    }
 
     if (!userData) {
         // Użytkownik nie zalogowany - pokaż modal logowania
@@ -96,6 +243,18 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
             currentConversation = null;
 
+            // Check admin status
+            isAdminUser = checkIfAdmin(userData);
+            if (isAdminUser) {
+                showAdminIndicator();
+                console.log('[ADMIN] Admin mode enabled');
+                uiTextsCache = await getUiTexts();
+                applyUiTexts();
+                enableChannelEditing();
+            } else {
+                hideAdminIndicator();
+            }
+
             // Show app
             hideAuthModal();
             showMainApp();
@@ -115,6 +274,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                 pollingInterval = null;
             }
             currentConversation = null;
+
+            // Reset admin state
+            isAdminUser = false;
+            hideAdminIndicator();
 
             showAuthModal();
             hideMainApp();
@@ -1485,7 +1648,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                                 <div class="post-date">${timeStr}</div>
                             </div>
                         </div>
-                        ${isAuthor ? `
+                        ${(isAuthor || isAdminUser) ? `
                             <button class="btn-text btn-delete-post" onclick="deletePostById('${post.id}')">Usuń</button>
                         ` : ''}
                     </div>
@@ -1720,7 +1883,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                             <button class="btn-comment-like ${hasLiked ? 'liked' : ''}" onclick="toggleLikeComment('${comment.id}', '${postId}')">
                                 Lubię to ${comment.likes_count > 0 ? `<span style="cursor: pointer;" onclick="event.stopPropagation(); showCommentLikes('${comment.id}', event);" title="Zobacz kto polubił">(${comment.likes_count})</span>` : ''}
                             </button>
-                            ${isAuthor ? `<button class="btn-delete-comment" onclick="deleteCommentById('${comment.id}', '${postId}')">Usuń</button>` : ''}
+                            ${(isAuthor || isAdminUser) ? `<button class="btn-delete-comment" onclick="deleteCommentById('${comment.id}', '${postId}')">Usuń</button>` : ''}
                         </div>
                     </div>
                 </div>
