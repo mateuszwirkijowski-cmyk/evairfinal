@@ -394,13 +394,18 @@ async function renderEvents() {
         let actionButton = '';
         let adminButtons = '';
 
-        // User action buttons - FIXED: Only show "registered" if current user is actually registered
-        if (currentUserId && event.isUserRegistered) {
-            actionButton = '<span class="event-badge registered">Jesteś zapisany/a</span>';
-        } else if (event.is_open && currentUserId) {
-            actionButton = `<button class="btn btn-primary" onclick="signUpForEvent('${event.id}')">Zapisz się</button>`;
-        } else if (!event.is_open) {
-            actionButton = '<span class="event-badge closed">Zapisy zamknięte</span>';
+        // REGISTRATION BUTTON LOGIC - Works for both regular users and admins
+        if (currentUserId) {
+            if (event.isUserRegistered) {
+                // User is registered - show cancel button
+                actionButton = `<button class="btn btn-outline" onclick="cancelEventRegistration('${event.id}')">Odwołaj zapis</button>`;
+            } else if (event.is_open || isAdminUser === true) {
+                // Event is open OR user is admin (admins can sign up even when closed)
+                actionButton = `<button class="btn btn-primary" onclick="signUpForEvent('${event.id}')">Zapisz się</button>`;
+            } else if (!event.is_open) {
+                // Event is closed and user is not admin
+                actionButton = '<span class="event-badge closed">Zapisy zamknięte</span>';
+            }
         }
 
         // STRICT ADMIN CHECK: Only show admin buttons if isAdminUser is explicitly true
@@ -564,6 +569,25 @@ window.signUpForEvent = async function(eventId) {
     } catch (error) {
         console.error('Error signing up for event:', error);
         alert('Błąd podczas zapisu. Możliwe, że jesteś już zapisany/a.');
+    }
+};
+
+// Cancel user registration for event
+window.cancelEventRegistration = async function(eventId) {
+    try {
+        const { error } = await supabase
+            .from('event_participants')
+            .delete()
+            .eq('event_id', eventId)
+            .eq('user_id', currentUserId);
+
+        if (error) throw error;
+
+        await renderEvents();
+        alert('Rejestracja anulowana!');
+    } catch (error) {
+        console.error('Error canceling registration:', error);
+        alert('Błąd podczas anulowania zapisu.');
     }
 };
 
