@@ -314,6 +314,255 @@ function hideAdminUserManagementButton() {
 }
 
 // ============================================
+// EVENTS SYSTEM
+// ============================================
+
+// Fetch all events with user participation status
+async function fetchEvents() {
+    try {
+        const { data: events, error } = await supabase
+            .from('events')
+            .select('*')
+            .order('event_date', { ascending: true });
+
+        if (error) throw error;
+
+        // For each event, check if current user is registered
+        if (currentUserId) {
+            const eventsWithStatus = await Promise.all(
+                events.map(async (event) => {
+                    const { data: participation } = await supabase
+                        .from('event_participants')
+                        .select('id')
+                        .eq('event_id', event.id)
+                        .eq('user_id', currentUserId)
+                        .maybeSingle();
+
+                    return {
+                        ...event,
+                        isUserRegistered: !!participation
+                    };
+                })
+            );
+            return eventsWithStatus;
+        }
+
+        return events.map(event => ({ ...event, isUserRegistered: false }));
+    } catch (error) {
+        console.error('Error fetching events:', error);
+        return [];
+    }
+}
+
+// Format event date to readable format
+function formatEventDate(dateString) {
+    const date = new Date(dateString);
+    const months = ['STY', 'LUT', 'MAR', 'KWI', 'MAJ', 'CZE', 'LIP', 'SIE', 'WRZ', 'PAŹ', 'LIS', 'GRU'];
+    const day = date.getDate();
+    const month = months[date.getMonth()];
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+
+    return { day, month, time: `${hours}:${minutes}` };
+}
+
+// Render events list
+async function renderEvents() {
+    const eventsList = document.getElementById('events-list');
+    const events = await fetchEvents();
+
+    if (events.length === 0) {
+        eventsList.innerHTML = '<p class="empty-state">Brak nadchodzących wydarzeń.</p>';
+        return;
+    }
+
+    eventsList.innerHTML = events.map(event => {
+        const { day, month, time } = formatEventDate(event.event_date);
+
+        let actionButton = '';
+        let adminButtons = '';
+
+        // User action buttons
+        if (event.isUserRegistered) {
+            actionButton = '<span class="event-badge registered">Jesteś zapisany/a</span>';
+        } else if (event.is_open) {
+            actionButton = `<button class="btn btn-primary" onclick="signUpForEvent('${event.id}')">Zapisz się</button>`;
+        } else {
+            actionButton = '<span class="event-badge closed">Zapisy zamknięte</span>';
+        }
+
+        // Admin buttons
+        if (isAdminUser) {
+            const toggleText = event.is_open ? 'Zamknij zapisy' : 'Otwórz zapisy';
+            adminButtons = `
+                <div class="event-admin-actions">
+                    <button class="btn-small btn-outline" onclick="toggleEventStatus('${event.id}', ${!event.is_open})">${toggleText}</button>
+                    <button class="btn-small btn-primary" onclick="openEventParticipantsModal('${event.id}')">Lista osób</button>
+                    <button class="btn-small btn-danger" onclick="deleteEvent('${event.id}')">Usuń</button>
+                </div>
+            `;
+        }
+
+        return `
+            <div class="card event-card">
+                <div class="event-date-box">
+                    <span class="day">${day}</span>
+                    <span class="month">${month}</span>
+                </div>
+                <div class="event-details">
+                    <h3>${event.title}</h3>
+                    <p class="event-time">Godzina: ${time}</p>
+                    ${event.description ? `<p>${event.description}</p>` : ''}
+                </div>
+                <div class="event-actions">
+                    ${actionButton}
+                    ${adminButtons}
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+// Create new event (Admin only)
+async function createEvent(title, eventDate, description) {
+    try {
+        const { error } = await supabase
+            .from('events')
+            .insert({
+                title,
+                event_date: eventDate,
+                description,
+                created_by: currentUserId,
+                is_open: true
+            });
+
+        if (error) throw error;
+
+        await renderEvents();
+        return true;
+    } catch (error) {
+        console.error('Error creating event:', error);
+        alert('Błąd podczas tworzenia wydarzenia.');
+        return false;
+    }
+}
+
+// Sign up user for event
+window.signUpForEvent = async function(eventId) {
+    try {
+        const { error } = await supabase
+            .from('event_participants')
+            .insert({
+                event_id: eventId,
+                user_id: currentUserId
+            });
+
+        if (error) throw error;
+
+        await renderEvents();
+        alert('Zapisano na wydarzenie!');
+    } catch (error) {
+        console.error('Error signing up for event:', error);
+        alert('Błąd podczas zapisu. Możliwe, że jesteś już zapisany/a.');
+    }
+};
+
+// Toggle event registration status (Admin only)
+window.toggleEventStatus = async function(eventId, newStatus) {
+    try {
+        const { error } = await supabase
+            .from('events')
+            .update({ is_open: newStatus })
+            .eq('id', eventId);
+
+        if (error) throw error;
+
+        await renderEvents();
+    } catch (error) {
+        console.error('Error toggling event status:', error);
+        alert('Błąd podczas zmiany statusu.');
+    }
+};
+
+// Delete event (Admin only)
+window.deleteEvent = async function(eventId) {
+    if (!confirm('Czy na pewno chcesz usunąć to wydarzenie?')) return;
+
+    try {
+        const { error } = await supabase
+            .from('events')
+            .delete()
+            .eq('id', eventId);
+
+        if (error) throw error;
+
+        await renderEvents();
+    } catch (error) {
+        console.error('Error deleting event:', error);
+        alert('Błąd podczas usuwania wydarzenia.');
+    }
+};
+
+// Fetch event participants (Admin only)
+async function fetchEventParticipants(eventId) {
+    try {
+        const { data, error } = await supabase
+            .from('event_participants')
+            .select(`
+                id,
+                registered_at,
+                user_id,
+                profiles:user_id (
+                    display_name,
+                    email
+                )
+            `)
+            .eq('event_id', eventId)
+            .order('registered_at', { ascending: true });
+
+        if (error) throw error;
+        return data || [];
+    } catch (error) {
+        console.error('Error fetching participants:', error);
+        return [];
+    }
+}
+
+// Open event participants modal
+window.openEventParticipantsModal = async function(eventId) {
+    const modal = document.getElementById('event-participants-modal');
+    const listContainer = document.getElementById('event-participants-list');
+
+    modal.classList.remove('hidden');
+    listContainer.innerHTML = '<p class="loading-text">Ładowanie...</p>';
+
+    const participants = await fetchEventParticipants(eventId);
+
+    if (participants.length === 0) {
+        listContainer.innerHTML = '<p class="empty-state">Brak zapisanych uczestników.</p>';
+        return;
+    }
+
+    listContainer.innerHTML = `
+        <ul class="participants-list">
+            ${participants.map(p => `
+                <li class="participant-item">
+                    <strong>${p.profiles.display_name || 'Brak nazwy'}</strong>
+                    <span class="participant-email">${p.profiles.email}</span>
+                    <span class="participant-date">Zapisany: ${new Date(p.registered_at).toLocaleDateString('pl-PL')}</span>
+                </li>
+            `).join('')}
+        </ul>
+    `;
+};
+
+// Close event participants modal
+window.closeEventParticipantsModal = function() {
+    const modal = document.getElementById('event-participants-modal');
+    modal.classList.add('hidden');
+};
+
+// ============================================
 // INICJALIZACJA APLIKACJI
 // ============================================
 document.addEventListener('DOMContentLoaded', async () => {
@@ -397,9 +646,21 @@ document.addEventListener('DOMContentLoaded', async () => {
                 uiTextsCache = await getUiTexts();
                 applyUiTexts();
                 enableChannelEditing();
+
+                // Show admin event creator
+                const adminEventCreator = document.getElementById('admin-event-creator');
+                if (adminEventCreator) {
+                    adminEventCreator.style.display = 'block';
+                }
             } else {
                 hideAdminIndicator();
                 hideAdminUserManagementButton();
+
+                // Hide admin event creator
+                const adminEventCreator = document.getElementById('admin-event-creator');
+                if (adminEventCreator) {
+                    adminEventCreator.style.display = 'none';
+                }
             }
 
             // Show app
@@ -846,8 +1107,48 @@ document.addEventListener('DOMContentLoaded', async () => {
                 sidebar.classList.remove('open');
             }
             window.scrollTo(0, 0);
+
+            // Load events when switching to events section
+            if (targetId === 'events') {
+                renderEvents();
+            }
         });
     });
+
+    // ============================================
+    // EVENTS - INITIALIZATION
+    // ============================================
+
+    // Show admin event creator if user is admin
+    if (isAdminUser) {
+        const adminEventCreator = document.getElementById('admin-event-creator');
+        if (adminEventCreator) {
+            adminEventCreator.style.display = 'block';
+        }
+    }
+
+    // Handle event creation form submission
+    const createEventForm = document.getElementById('create-event-form');
+    if (createEventForm) {
+        createEventForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const title = document.getElementById('event-title').value;
+            const eventDate = document.getElementById('event-date').value;
+            const description = document.getElementById('event-description').value;
+
+            if (!title || !eventDate) {
+                alert('Proszę wypełnić wymagane pola.');
+                return;
+            }
+
+            const success = await createEvent(title, eventDate, description);
+            if (success) {
+                createEventForm.reset();
+                alert('Wydarzenie zostało utworzone!');
+            }
+        });
+    }
 
     // ============================================
     // MOBILE MENU
