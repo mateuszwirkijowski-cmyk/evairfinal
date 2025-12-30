@@ -673,12 +673,19 @@ window.openEventParticipantsModal = async function(eventId) {
             ${participants.map(p => {
                 const avatarUrl = p.profiles.avatar_url || 'https://via.placeholder.com/50';
                 const fullName = p.profiles.full_name || 'Brak nazwy';
+                const registeredDateTime = new Date(p.registered_at).toLocaleString('pl-PL', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
                 return `
                     <li class="participant-item">
                         <img src="${avatarUrl}" alt="${fullName}" class="participant-avatar">
                         <div class="participant-info">
                             <strong class="participant-name">${fullName}</strong>
-                            <span class="participant-date">Zapisany: ${new Date(p.registered_at).toLocaleDateString('pl-PL')}</span>
+                            <span class="participant-date">Zapisany: ${registeredDateTime}</span>
                         </div>
                     </li>
                 `;
