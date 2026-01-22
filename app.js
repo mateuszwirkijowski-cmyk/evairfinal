@@ -129,6 +129,26 @@ function hideAdminIndicator() {
     if (badge) badge.remove();
 }
 
+// Load UI texts from database and apply them
+async function loadUiTexts() {
+    try {
+        const texts = await getUiTexts();
+        Object.keys(texts).forEach(key => {
+            uiTextsCache[key] = texts[key];
+        });
+        applyUiTexts();
+        console.log('[UI] UI texts loaded successfully');
+    } catch (error) {
+        console.error('[UI] Error loading UI texts:', error);
+    }
+}
+
+// Enable admin editing features
+function enableAdminEditing() {
+    enableChannelEditing();
+    console.log('[ADMIN] Admin editing enabled');
+}
+
 // Apply UI texts to navigation buttons
 function applyUiTexts() {
     const navButtons = {
@@ -992,9 +1012,21 @@ document.addEventListener('DOMContentLoaded', async () => {
     const loginContainer = document.getElementById('login-form-container');
     const registerContainer = document.getElementById('register-form-container');
 
+    console.log('[AUTH TABS] Found tabs:', authTabs.length);
+    console.log('[AUTH TABS] Login container:', loginContainer);
+    console.log('[AUTH TABS] Register container:', registerContainer);
+
+    if (!loginContainer || !registerContainer) {
+        console.error('[AUTH TABS] Missing auth form containers!');
+    }
+
     authTabs.forEach(tab => {
-        tab.addEventListener('click', () => {
+        tab.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+
             const targetTab = tab.getAttribute('data-tab');
+            console.log('[AUTH TABS] Tab clicked:', targetTab);
 
             authTabs.forEach(t => t.classList.remove('active'));
             tab.classList.add('active');
@@ -1002,9 +1034,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (targetTab === 'login') {
                 loginContainer.classList.add('active');
                 registerContainer.classList.remove('active');
+                console.log('[AUTH TABS] Switched to login form');
             } else {
                 registerContainer.classList.add('active');
                 loginContainer.classList.remove('active');
+                console.log('[AUTH TABS] Switched to register form');
             }
         });
     });
