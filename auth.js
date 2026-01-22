@@ -28,12 +28,20 @@ let currentProfile = null;
 
 // Pobranie aktualnego użytkownika i profilu
 export async function getCurrentUser() {
-    const { data: { user }, error } = await supabase.auth.getUser();
-    if (error || !user) return null;
+    try {
+        const { data: { user }, error } = await supabase.auth.getUser();
+        if (error || !user) return null;
 
-    currentUser = user;
-    await loadUserProfile(user.id);
-    return { user: currentUser, profile: currentProfile };
+        currentUser = user;
+        await loadUserProfile(user.id);
+
+        // CRITICAL: Always return valid userData even if profile is fallback
+        return { user: currentUser, profile: currentProfile };
+    } catch (error) {
+        console.error('[AUTH] CRITICAL ERROR in getCurrentUser:', error);
+        // Return null if we can't get the user at all
+        return null;
+    }
 }
 
 // Pobranie profilu użytkownika z bazy
@@ -115,7 +123,13 @@ export async function signIn(email, password) {
     }
 
     currentUser = data.user;
-    await loadUserProfile(data.user.id);
+
+    try {
+        await loadUserProfile(data.user.id);
+    } catch (profileError) {
+        console.error('[AUTH] Error loading profile during sign in:', profileError);
+        // Profile already set to fallback by loadUserProfile, continue
+    }
 
     return { user: currentUser, profile: currentProfile };
 }
@@ -256,14 +270,24 @@ export function onAuthStateChange(callback) {
     supabase.auth.onAuthStateChange((event, session) => {
         // Async operacje w oddzielnym bloku
         (async () => {
-            if (session?.user) {
-                currentUser = session.user;
-                await loadUserProfile(session.user.id);
-                callback(event, { user: currentUser, profile: currentProfile });
-            } else {
-                currentUser = null;
-                currentProfile = null;
-                callback(event, null);
+            try {
+                if (session?.user) {
+                    currentUser = session.user;
+                    await loadUserProfile(session.user.id);
+                    callback(event, { user: currentUser, profile: currentProfile });
+                } else {
+                    currentUser = null;
+                    currentProfile = null;
+                    callback(event, null);
+                }
+            } catch (error) {
+                console.error('[AUTH] Error in onAuthStateChange:', error);
+                // Continue with fallback profile if loadUserProfile set it
+                if (currentUser && currentProfile) {
+                    callback(event, { user: currentUser, profile: currentProfile });
+                } else {
+                    callback(event, null);
+                }
             }
         })();
     });
