@@ -729,18 +729,41 @@ document.addEventListener('DOMContentLoaded', async () => {
         showAdminUserManagementButton();
         console.log('[ADMIN] Admin mode enabled');
 
-        // Load UI texts
-        uiTextsCache = await getUiTexts();
+        // Load and apply UI texts
+        await loadUiTexts();
 
-        // Apply UI texts to navigation
-        applyUiTexts();
+        // Enable inline editing for all editable elements
+        enableAdminEditing();
 
-        // Make channel names editable
-        enableChannelEditing();
+        // STRICT: Show admin event creator
+        const adminEventCreator = document.getElementById('admin-event-creator');
+        if (adminEventCreator) {
+            adminEventCreator.style.display = 'block';
+        }
+
+        // STRICT: Show admin announcement creator
+        const adminAnnouncementCreator = document.getElementById('admin-announcement-creator');
+        if (adminAnnouncementCreator) {
+            adminAnnouncementCreator.style.display = 'block';
+        }
     } else {
         // Ensure admin features are hidden for non-admin users
         hideAdminIndicator();
         hideAdminUserManagementButton();
+
+        // Load UI texts for non-admin users (read-only)
+        await loadUiTexts();
+
+        // STRICT: Hide admin creators for non-admins
+        const adminEventCreator = document.getElementById('admin-event-creator');
+        if (adminEventCreator) {
+            adminEventCreator.style.display = 'none';
+        }
+
+        const adminAnnouncementCreator = document.getElementById('admin-announcement-creator');
+        if (adminAnnouncementCreator) {
+            adminAnnouncementCreator.style.display = 'none';
+        }
     }
 
     if (!userData) {
@@ -785,23 +808,40 @@ document.addEventListener('DOMContentLoaded', async () => {
                 showAdminIndicator();
                 showAdminUserManagementButton();
                 console.log('[ADMIN] Admin mode enabled');
-                uiTextsCache = await getUiTexts();
-                applyUiTexts();
-                enableChannelEditing();
+
+                // Load and apply UI texts
+                await loadUiTexts();
+
+                // Enable inline editing for all editable elements
+                enableAdminEditing();
 
                 // STRICT: Show admin event creator
                 const adminEventCreator = document.getElementById('admin-event-creator');
                 if (adminEventCreator) {
                     adminEventCreator.style.display = 'block';
                 }
+
+                // STRICT: Show admin announcement creator
+                const adminAnnouncementCreator = document.getElementById('admin-announcement-creator');
+                if (adminAnnouncementCreator) {
+                    adminAnnouncementCreator.style.display = 'block';
+                }
             } else {
                 hideAdminIndicator();
                 hideAdminUserManagementButton();
 
-                // STRICT: Hide admin event creator for non-admins
+                // Load UI texts for non-admin users (read-only)
+                await loadUiTexts();
+
+                // STRICT: Hide admin creators for non-admins
                 const adminEventCreator = document.getElementById('admin-event-creator');
                 if (adminEventCreator) {
                     adminEventCreator.style.display = 'none';
+                }
+
+                const adminAnnouncementCreator = document.getElementById('admin-announcement-creator');
+                if (adminAnnouncementCreator) {
+                    adminAnnouncementCreator.style.display = 'none';
                 }
             }
 
