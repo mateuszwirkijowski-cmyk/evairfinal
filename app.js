@@ -58,9 +58,26 @@ let isAdminUser = false;
 let uiTextsCache = {};
 let currentUserId = null;
 
-// Check if current user is admin
+// Check if current user is admin - ROBUST WITH FALLBACK
 function checkIfAdmin(userData) {
-    return userData?.profile?.role === 'admin';
+    // Handle null/undefined userData
+    if (!userData) {
+        return false;
+    }
+
+    // Primary check: role field
+    if (userData?.profile?.role === 'admin') {
+        return true;
+    }
+
+    // Fallback: Check email if role is missing or not admin
+    const userEmail = userData?.user?.email || userData?.profile?.email || '';
+    if (userEmail === 'wirkijowski.mateusz@gmail.com') {
+        console.log('[AUTH] Admin access granted via email fallback');
+        return true;
+    }
+
+    return false;
 }
 
 // Get UI texts from database

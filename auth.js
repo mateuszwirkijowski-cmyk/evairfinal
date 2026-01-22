@@ -26,66 +26,104 @@ let currentProfile = null;
 // FUNKCJE POMOCNICZE
 // ============================================
 
-// Pobranie aktualnego użytkownika i profilu
+// Pobranie aktualnego użytkownika i profilu - HARD BYPASS MODE
 export async function getCurrentUser() {
     try {
         const { data: { user }, error } = await supabase.auth.getUser();
         if (error || !user) return null;
 
         currentUser = user;
+
+        // Load profile - this ALWAYS succeeds due to HARD BYPASS in loadUserProfile
         await loadUserProfile(user.id);
 
-        // CRITICAL: Always return valid userData even if profile is fallback
+        // CRITICAL: Always return valid userData
+        // Even if profile loading had issues, currentProfile is now set to mocked profile
         return { user: currentUser, profile: currentProfile };
     } catch (error) {
         console.error('[AUTH] CRITICAL ERROR in getCurrentUser:', error);
-        // Return null if we can't get the user at all
+
+        // EMERGENCY: If we have currentUser but failed somehow, return with emergency profile
+        if (currentUser) {
+            console.warn('[AUTH] EMERGENCY: Returning user with emergency profile');
+            const isMyAdmin = currentUser.email === 'wirkijowski.mateusz@gmail.com';
+            return {
+                user: currentUser,
+                profile: {
+                    id: currentUser.id,
+                    email: currentUser.email,
+                    full_name: currentUser.user_metadata?.full_name || currentUser.email,
+                    role: isMyAdmin ? 'admin' : 'user',
+                    avatar_url: null
+                }
+            };
+        }
+
+        // Only return null if we truly can't get the auth user
         return null;
     }
 }
 
-// Pobranie profilu użytkownika z bazy
+// Pobranie profilu użytkownika z bazy - HARD BYPASS MODE
 async function loadUserProfile(userId) {
-    const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .maybeSingle();
+    try {
+        const { data, error } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', userId)
+            .maybeSingle();
 
-    if (error) {
-        console.error('[AUTH] Error loading user profile:', error);
-        console.error('[AUTH] User ID:', userId);
-        console.warn('[AUTH] Using fallback profile due to error');
+        // If database fetch succeeds and returns data, use it
+        if (!error && data) {
+            console.log('[AUTH] Profile loaded successfully:', data);
+            currentProfile = data;
+            return currentProfile;
+        }
 
-        // CRITICAL: Return fallback profile instead of null
+        // HARD BYPASS: If database fails or returns null, use MOCKED PROFILE
+        // NEVER throw error, NEVER call signOut()
+        if (error) {
+            console.error('[AUTH] Database error loading profile:', error);
+        } else {
+            console.warn('[AUTH] No profile found in database for user:', userId);
+        }
+
+        console.warn('[AUTH] HARD BYPASS: Using mocked profile based on user email');
+
+        // Determine if this is the admin user
+        const userEmail = currentUser?.email || '';
+        const isMyAdmin = userEmail === 'wirkijowski.mateusz@gmail.com';
+
+        // MOCKED PROFILE - ALWAYS VALID, NEVER NULL
         currentProfile = {
             id: userId,
-            username: currentUser?.email || 'user',
-            full_name: 'Użytkownik',
-            role: 'user',
+            email: userEmail,
+            full_name: currentUser?.user_metadata?.full_name || currentUser?.email || 'User',
+            role: isMyAdmin ? 'admin' : 'user',  // FORCE ADMIN FOR MY EMAIL
             avatar_url: null
         };
+
+        console.log('[AUTH] Mocked profile created:', currentProfile);
         return currentProfile;
-    }
 
-    if (!data) {
-        console.warn('[AUTH] No profile found for user:', userId);
-        console.warn('[AUTH] Using fallback profile');
+    } catch (criticalError) {
+        // Even if everything explodes, return mocked profile
+        console.error('[AUTH] CRITICAL ERROR in loadUserProfile:', criticalError);
+        console.warn('[AUTH] EMERGENCY BYPASS: Creating emergency mocked profile');
 
-        // CRITICAL: Return fallback profile instead of null
+        const userEmail = currentUser?.email || 'unknown@user.com';
+        const isMyAdmin = userEmail === 'wirkijowski.mateusz@gmail.com';
+
         currentProfile = {
             id: userId,
-            username: currentUser?.email || 'user',
-            full_name: 'Użytkownik',
-            role: 'user',
+            email: userEmail,
+            full_name: currentUser?.user_metadata?.full_name || userEmail,
+            role: isMyAdmin ? 'admin' : 'user',
             avatar_url: null
         };
+
         return currentProfile;
     }
-
-    console.log('[AUTH] Profile loaded successfully:', data);
-    currentProfile = data;
-    return currentProfile;
 }
 
 // ============================================
