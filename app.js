@@ -1023,19 +1023,78 @@ document.addEventListener('DOMContentLoaded', async () => {
         const email = document.getElementById('login-email').value.trim();
         const password = document.getElementById('login-password').value;
 
-        try {
-            const submitBtn = loginForm.querySelector('button[type="submit"]');
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Logowanie...';
+        console.log('[LOGIN] Attempting login for:', email);
 
-            await signIn(email, password);
+        const submitBtn = loginForm.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Logowanie...';
+
+        try {
+            const result = await signIn(email, password);
+            console.log('[LOGIN] Login successful:', result);
 
             loginForm.reset();
 
+            // Get fresh user data after login
+            const userData = await getCurrentUser();
+            console.log('[LOGIN] User data after login:', userData);
+
+            if (userData) {
+                // Update current user ID
+                currentUserId = userData.user.id;
+
+                // Check admin status
+                isAdminUser = checkIfAdmin(userData);
+                console.log('[LOGIN] Is admin:', isAdminUser);
+
+                if (isAdminUser === true) {
+                    showAdminIndicator();
+                    showAdminUserManagementButton();
+                    await loadUiTexts();
+                    enableAdminEditing();
+
+                    const adminEventCreator = document.getElementById('admin-event-creator');
+                    if (adminEventCreator) {
+                        adminEventCreator.style.display = 'block';
+                    }
+
+                    const adminAnnouncementCreator = document.getElementById('admin-announcement-creator');
+                    if (adminAnnouncementCreator) {
+                        adminAnnouncementCreator.style.display = 'block';
+                    }
+                } else {
+                    hideAdminIndicator();
+                    hideAdminUserManagementButton();
+                    await loadUiTexts();
+
+                    const adminEventCreator = document.getElementById('admin-event-creator');
+                    if (adminEventCreator) {
+                        adminEventCreator.style.display = 'none';
+                    }
+
+                    const adminAnnouncementCreator = document.getElementById('admin-announcement-creator');
+                    if (adminAnnouncementCreator) {
+                        adminAnnouncementCreator.style.display = 'none';
+                    }
+                }
+
+                // Show main app and hide modal
+                hideAuthModal();
+                showMainApp();
+                updateUserDisplay(userData);
+
+                // Load data
+                await loadConversations();
+                await loadPosts();
+
+                console.log('[LOGIN] Login complete and app loaded');
+            } else {
+                throw new Error('Failed to get user data after login');
+            }
+
         } catch (error) {
+            console.error('[LOGIN] Login error:', error);
             loginError.textContent = getPolishErrorMessage(error.message);
-        } finally {
-            const submitBtn = loginForm.querySelector('button[type="submit"]');
             submitBtn.disabled = false;
             submitBtn.textContent = 'Zaloguj się';
         }
@@ -1057,38 +1116,48 @@ document.addEventListener('DOMContentLoaded', async () => {
         const password = document.getElementById('register-password').value;
         const confirmPassword = document.getElementById('register-confirm').value;
 
+        console.log('[REGISTER] Attempting registration for:', email);
+
         if (password !== confirmPassword) {
             registerError.textContent = 'Hasła nie są identyczne';
+            console.log('[REGISTER] Password mismatch');
             return;
         }
 
         if (password.length < 6) {
             registerError.textContent = 'Hasło musi mieć minimum 6 znaków';
+            console.log('[REGISTER] Password too short');
             return;
         }
 
-        try {
-            const submitBtn = registerForm.querySelector('button[type="submit"]');
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Rejestracja...';
+        const submitBtn = registerForm.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Rejestracja...';
 
-            await signUp(email, password, fullName);
+        try {
+            const result = await signUp(email, password, fullName);
+            console.log('[REGISTER] Registration successful:', result);
 
             registerForm.reset();
 
-            // Automatyczne przełączenie na logowanie
+            // Switch to login tab automatically
             authTabs[0].click();
             loginError.textContent = '';
+
+            // Show success message
             const successMsg = document.createElement('div');
             successMsg.className = 'success-message';
+            successMsg.style.cssText = 'padding: 12px; margin-bottom: 16px; background-color: #10b981; color: white; border-radius: 8px; text-align: center;';
             successMsg.textContent = 'Konto utworzone! Możesz się teraz zalogować.';
             loginContainer.insertBefore(successMsg, loginForm);
             setTimeout(() => successMsg.remove(), 5000);
 
+            console.log('[REGISTER] Registration complete, switched to login');
+
         } catch (error) {
+            console.error('[REGISTER] Registration error:', error);
             registerError.textContent = getPolishErrorMessage(error.message);
         } finally {
-            const submitBtn = registerForm.querySelector('button[type="submit"]');
             submitBtn.disabled = false;
             submitBtn.textContent = 'Zarejestruj się';
         }
