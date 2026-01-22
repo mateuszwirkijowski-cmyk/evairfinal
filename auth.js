@@ -47,12 +47,32 @@ async function loadUserProfile(userId) {
     if (error) {
         console.error('[AUTH] Error loading user profile:', error);
         console.error('[AUTH] User ID:', userId);
-        return null;
+        console.warn('[AUTH] Using fallback profile due to error');
+
+        // CRITICAL: Return fallback profile instead of null
+        currentProfile = {
+            id: userId,
+            username: currentUser?.email || 'user',
+            full_name: 'Użytkownik',
+            role: 'user',
+            avatar_url: null
+        };
+        return currentProfile;
     }
 
     if (!data) {
         console.warn('[AUTH] No profile found for user:', userId);
-        return null;
+        console.warn('[AUTH] Using fallback profile');
+
+        // CRITICAL: Return fallback profile instead of null
+        currentProfile = {
+            id: userId,
+            username: currentUser?.email || 'user',
+            full_name: 'Użytkownik',
+            role: 'user',
+            avatar_url: null
+        };
+        return currentProfile;
     }
 
     console.log('[AUTH] Profile loaded successfully:', data);
