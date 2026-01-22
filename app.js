@@ -146,11 +146,54 @@ async function loadUiTexts() {
 // Enable admin editing features
 function enableAdminEditing() {
     enableChannelEditing();
+    enableAllEditableElements();
     console.log('[ADMIN] Admin editing enabled');
 }
 
-// Apply UI texts to navigation buttons
+// Enable editing for all elements with data-editable-id
+function enableAllEditableElements() {
+    const editableElements = document.querySelectorAll('[data-editable-id]');
+
+    editableElements.forEach(element => {
+        const elementId = element.getAttribute('data-editable-id');
+
+        element.contentEditable = 'true';
+        element.style.cursor = 'text';
+        element.style.outline = '1px dashed rgba(220, 38, 38, 0.3)';
+        element.style.padding = '4px';
+        element.title = 'Kliknij aby edytować (tylko dla admina)';
+
+        // Save original content as data attribute for comparison
+        const originalContent = element.tagName === 'UL' ? element.innerHTML : element.textContent;
+        element.setAttribute('data-original-content', originalContent);
+
+        element.addEventListener('blur', async () => {
+            const newContent = element.tagName === 'UL' ? element.innerHTML.trim() : element.textContent.trim();
+            const originalContent = element.getAttribute('data-original-content');
+
+            if (newContent && newContent !== originalContent) {
+                const success = await updateUiText(elementId, newContent);
+                if (success) {
+                    element.setAttribute('data-original-content', newContent);
+                    console.log(`[ADMIN] Updated ${elementId}`);
+                }
+            }
+        });
+
+        element.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && element.tagName !== 'UL') {
+                e.preventDefault();
+                element.blur();
+            }
+        });
+    });
+
+    console.log(`[ADMIN] Enabled editing for ${editableElements.length} elements with data-editable-id`);
+}
+
+// Apply UI texts to all editable elements
 function applyUiTexts() {
+    // Apply to navigation buttons (old system)
     const navButtons = {
         'feed': 'channel_feed',
         'gallery': 'channel_gallery',
@@ -167,6 +210,20 @@ function applyUiTexts() {
             const textElement = button.querySelector('.nav-text');
             if (textElement) {
                 textElement.textContent = uiTextsCache[elementId];
+            }
+        }
+    });
+
+    // Apply to all elements with data-editable-id attribute
+    const editableElements = document.querySelectorAll('[data-editable-id]');
+    editableElements.forEach(element => {
+        const elementId = element.getAttribute('data-editable-id');
+        if (uiTextsCache[elementId]) {
+            if (element.tagName === 'UL') {
+                // For lists, set innerHTML to preserve structure
+                element.innerHTML = uiTextsCache[elementId];
+            } else {
+                element.textContent = uiTextsCache[elementId];
             }
         }
     });
