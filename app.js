@@ -29,6 +29,8 @@ import {
     getOrCreateDirectConversation
 } from './chat.js';
 
+import { initTrainingModules } from './training.js';
+
 // BLA_BLA_AIR POST FEED - Import modułu
 import {
     getPosts,
@@ -829,6 +831,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Enable inline editing for all editable elements
         enableAdminEditing();
 
+        // Initialize training modules with admin access
+        await initTrainingModules(true);
+
         // STRICT: Show admin event creator
         const adminEventCreator = document.getElementById('admin-event-creator');
         if (adminEventCreator) {
@@ -847,6 +852,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // Load UI texts for non-admin users (read-only)
         await loadUiTexts();
+
+        // Initialize training modules without admin access
+        await initTrainingModules(false);
 
         // STRICT: Hide admin creators for non-admins
         const adminEventCreator = document.getElementById('admin-event-creator');
@@ -909,6 +917,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 // Enable inline editing for all editable elements
                 enableAdminEditing();
 
+                // Initialize training modules with admin access
+                await initTrainingModules(true);
+
                 // STRICT: Show admin event creator
                 const adminEventCreator = document.getElementById('admin-event-creator');
                 if (adminEventCreator) {
@@ -926,6 +937,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 // Load UI texts for non-admin users (read-only)
                 await loadUiTexts();
+
+                // Initialize training modules without admin access
+                await initTrainingModules(false);
 
                 // STRICT: Hide admin creators for non-admins
                 const adminEventCreator = document.getElementById('admin-event-creator');
@@ -1143,6 +1157,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     showAdminUserManagementButton();
                     await loadUiTexts();
                     enableAdminEditing();
+                    await initTrainingModules(true);
 
                     const adminEventCreator = document.getElementById('admin-event-creator');
                     if (adminEventCreator) {
@@ -1157,6 +1172,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     hideAdminIndicator();
                     hideAdminUserManagementButton();
                     await loadUiTexts();
+                    await initTrainingModules(false);
 
                     const adminEventCreator = document.getElementById('admin-event-creator');
                     if (adminEventCreator) {

@@ -2320,3 +2320,210 @@ textarea.input-field {
         grid-template-columns: 1fr;
     }
 }
+
+
+/* ============================================
+   RICH TEXT EDITOR FOR TRAINING MODULES
+   ============================================ */
+
+.rich-text-toolbar {
+    display: flex;
+    gap: 4px;
+    padding: 8px;
+    background: #f5f5f5;
+    border: 1px solid var(--border-grey);
+    border-bottom: none;
+    border-radius: 8px 8px 0 0;
+    flex-wrap: wrap;
+}
+
+.toolbar-btn {
+    padding: 6px 10px;
+    background: white;
+    border: 1px solid var(--border-grey);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.toolbar-btn:hover {
+    background: #e9ecef;
+}
+
+.toolbar-btn:active {
+    background: #dee2e6;
+}
+
+.toolbar-separator {
+    display: inline-block;
+    width: 1px;
+    background: var(--border-grey);
+    margin: 0 4px;
+}
+
+.rich-text-editor {
+    min-height: 300px;
+    padding: 16px;
+    background: white;
+    border: 1px solid var(--border-grey);
+    border-radius: 0 0 8px 8px;
+    font-size: 16px;
+    line-height: 1.6;
+    overflow-y: auto;
+    max-height: 500px;
+}
+
+.rich-text-editor:focus {
+    outline: 2px solid var(--primary-red);
+    outline-offset: -2px;
+}
+
+.rich-text-editor h2 {
+    margin-top: 16px;
+    margin-bottom: 12px;
+    font-size: 24px;
+}
+
+.rich-text-editor h3 {
+    margin-top: 14px;
+    margin-bottom: 10px;
+    font-size: 20px;
+}
+
+.rich-text-editor p {
+    margin-bottom: 12px;
+}
+
+.rich-text-editor ul,
+.rich-text-editor ol {
+    margin-left: 24px;
+    margin-bottom: 12px;
+}
+
+.rich-text-editor hr {
+    margin: 20px 0;
+    border: none;
+    border-top: 2px solid var(--border-grey);
+}
+
+/* Training module cards in admin panel */
+.module-admin-card {
+    background: white;
+    border: 1px solid var(--border-grey);
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.module-admin-info {
+    flex: 1;
+}
+
+.module-admin-info h3 {
+    margin: 0 0 8px 0;
+    font-size: 18px;
+}
+
+.module-admin-info p {
+    margin: 0;
+    font-size: 14px;
+    color: var(--text-grey);
+}
+
+.module-admin-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.module-admin-actions button {
+    padding: 8px 16px;
+    font-size: 14px;
+}
+
+/* Training module display */
+.training-btn.module-item {
+    position: relative;
+    padding-right: 40px;
+}
+
+.training-btn .delete-module-btn {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    color: #dc3545;
+    cursor: pointer;
+    padding: 4px;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.training-btn:hover .delete-module-btn {
+    opacity: 1;
+}
+
+.training-btn .delete-module-btn:hover {
+    color: #c82333;
+}
+
+/* Video and PDF display in modules */
+.module-video-container {
+    margin: 20px 0;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #000;
+}
+
+.module-video-container video {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.module-pdf-container {
+    margin: 20px 0;
+    border: 1px solid var(--border-grey);
+    border-radius: 8px;
+    padding: 16px;
+    background: #f9f9f9;
+}
+
+.module-pdf-container h4 {
+    margin: 0 0 12px 0;
+    font-size: 18px;
+}
+
+.module-pdf-container a {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: var(--primary-red);
+    color: white;
+    text-decoration: none;
+    border-radius: 6px;
+    transition: background 0.2s;
+}
+
+.module-pdf-container a:hover {
+    background: var(--primary-red-hover);
+}
+
+.module-embed-container {
+    margin: 20px 0;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.module-embed-container iframe {
+    width: 100%;
+    min-height: 400px;
+    border: none;
+}
+

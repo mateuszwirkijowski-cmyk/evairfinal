@@ -371,17 +371,27 @@
             </section>
 
             <section id="training" class="channel-section">
+                <!-- Admin button for managing modules -->
+                <button id="manage-modules-btn" class="btn btn-primary" style="display: none; margin-bottom: 20px;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    </svg>
+                    Zarządzaj modułami
+                </button>
+
                 <div class="training-layout">
                     <div class="training-sidebar">
                         <h3>Wybierz moduł:</h3>
-                        <button class="training-btn active" onclick="showModule(1)">Moduł 1: Podstawy</button>
-                        <button class="training-btn" onclick="showModule(2)">Moduł 2: Bezpieczeństwo</button>
-                        <button class="training-btn" onclick="showModule(3)">Moduł 3: Rezerwacje</button>
+                        <div id="training-modules-list">
+                            <p class="loading-text">Ładowanie modułów...</p>
+                        </div>
                     </div>
 
                     <div class="training-content card">
                         <div id="module-content">
-                            </div>
+                            <p style="text-align: center; color: #666;">Wybierz moduł z listy po lewej</p>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -663,6 +673,120 @@
                 <div id="event-participants-list">
                     <p class="loading-text">Ładowanie...</p>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Training Modules Management Modal (Admin Only) -->
+    <div id="training-modules-modal" class="modal hidden">
+        <div class="modal-card" style="max-width: 900px;">
+            <div class="modal-header">
+                <h2>Zarządzanie modułami szkoleniowymi</h2>
+                <button class="close-modal-btn" onclick="closeTrainingModulesModal()">Zamknij ✕</button>
+            </div>
+            <div class="modal-body-scroll">
+                <!-- Add new module button -->
+                <button id="add-new-module-btn" class="btn btn-primary" style="margin-bottom: 20px;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    Dodaj nowy moduł
+                </button>
+
+                <!-- Modules list -->
+                <div id="admin-modules-list">
+                    <p class="loading-text">Ładowanie...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Training Module Modal (Admin Only) -->
+    <div id="edit-module-modal" class="modal hidden">
+        <div class="modal-card" style="max-width: 1000px;">
+            <div class="modal-header">
+                <h2 id="edit-module-title">Edytuj moduł</h2>
+                <button class="close-modal-btn" onclick="closeEditModuleModal()">Zamknij ✕</button>
+            </div>
+            <div class="modal-body-scroll">
+                <form id="edit-module-form">
+                    <input type="hidden" id="edit-module-id">
+
+                    <div class="form-group">
+                        <label for="edit-module-name">Nazwa modułu</label>
+                        <input type="text" id="edit-module-name" class="form-input" placeholder="np. Moduł 1: Podstawy" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Treść modułu</label>
+                        <div class="rich-text-toolbar">
+                            <button type="button" class="toolbar-btn" data-command="bold" title="Pogrubienie">
+                                <strong>B</strong>
+                            </button>
+                            <button type="button" class="toolbar-btn" data-command="italic" title="Kursywa">
+                                <em>I</em>
+                            </button>
+                            <button type="button" class="toolbar-btn" data-command="underline" title="Podkreślenie">
+                                <u>U</u>
+                            </button>
+                            <span class="toolbar-separator">|</span>
+                            <button type="button" class="toolbar-btn" data-command="formatBlock" data-value="h2" title="Nagłówek 2">
+                                H2
+                            </button>
+                            <button type="button" class="toolbar-btn" data-command="formatBlock" data-value="h3" title="Nagłówek 3">
+                                H3
+                            </button>
+                            <button type="button" class="toolbar-btn" data-command="formatBlock" data-value="p" title="Paragraf">
+                                P
+                            </button>
+                            <span class="toolbar-separator">|</span>
+                            <button type="button" class="toolbar-btn" data-command="insertUnorderedList" title="Lista punktowana">
+                                • Lista
+                            </button>
+                            <button type="button" class="toolbar-btn" data-command="insertOrderedList" title="Lista numerowana">
+                                1. Lista
+                            </button>
+                            <span class="toolbar-separator">|</span>
+                            <button type="button" class="toolbar-btn" data-command="insertHorizontalRule" title="Linia pozioma">
+                                ―
+                            </button>
+                        </div>
+                        <div id="edit-module-content" class="rich-text-editor" contenteditable="true">
+                            <p>Wpisz treść modułu...</p>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="edit-module-video">Wideo (opcjonalnie)</label>
+                        <input type="file" id="edit-module-video" class="form-input" accept="video/*">
+                        <p class="form-hint" id="current-video-info"></p>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="edit-module-pdf">Dokument PDF (opcjonalnie)</label>
+                        <input type="file" id="edit-module-pdf" class="form-input" accept=".pdf">
+                        <p class="form-hint" id="current-pdf-info"></p>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="edit-module-embed">Kod embed (opcjonalnie)</label>
+                        <textarea id="edit-module-embed" class="form-input" rows="3" placeholder="Wklej kod iframe lub embed..."></textarea>
+                        <p class="form-hint">Możesz osadzić zewnętrzne treści (YouTube, Vimeo, itp.)</p>
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="edit-module-active" checked>
+                            Moduł aktywny (widoczny dla użytkowników)
+                        </label>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">Zapisz moduł</button>
+                        <button type="button" class="btn btn-outline" onclick="closeEditModuleModal()">Anuluj</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
