@@ -187,10 +187,7 @@ window.editTrainingModule = async function(moduleId) {
         document.getElementById('edit-module-id').value = '';
         document.getElementById('edit-module-name').value = '';
         document.getElementById('edit-module-content').innerHTML = '<p>Wpisz treść modułu...</p>';
-        document.getElementById('edit-module-embed').value = '';
         document.getElementById('edit-module-active').checked = true;
-        document.getElementById('current-video-info').textContent = '';
-        document.getElementById('current-pdf-info').textContent = '';
 
         const maxOrder = allModules.length > 0 ? Math.max(...allModules.map(m => m.order_index)) : 0;
         document.getElementById('edit-module-name').setAttribute('data-order', maxOrder + 1);
@@ -209,21 +206,10 @@ window.editTrainingModule = async function(moduleId) {
             document.getElementById('edit-module-id').value = data.id;
             document.getElementById('edit-module-name').value = data.title;
             document.getElementById('edit-module-content').innerHTML = data.content || '<p>Wpisz treść modułu...</p>';
-            document.getElementById('edit-module-embed').value = data.embed_code || '';
             document.getElementById('edit-module-active').checked = data.is_active;
             document.getElementById('edit-module-name').setAttribute('data-order', data.order_index);
 
-            if (data.video_url) {
-                document.getElementById('current-video-info').textContent = '✓ Wideo już dodane. Wybierz nowy plik aby zamienić.';
-            } else {
-                document.getElementById('current-video-info').textContent = '';
-            }
-
-            if (data.pdf_url) {
-                document.getElementById('current-pdf-info').textContent = '✓ PDF już dodany. Wybierz nowy plik aby zamienić.';
-            } else {
-                document.getElementById('current-pdf-info').textContent = '';
-            }
+      
         } catch (error) {
             console.error('[TRAINING] Error loading module for edit:', error);
             alert('Błąd ładowania modułu');
