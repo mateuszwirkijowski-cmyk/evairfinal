@@ -265,24 +265,7 @@ function setupModuleEventListeners() {
         form.onsubmit = handleModuleSave;
     }
 }
-function insertHtmlAtCursor(html) {
-    const sel = window.getSelection();
-    if (!sel || !sel.rangeCount) return;
 
-    const range = sel.getRangeAt(0);
-    range.deleteContents();
-
-    const el = document.createElement('div');
-    el.innerHTML = html;
-
-    const frag = document.createDocumentFragment();
-    let node;
-    while ((node = el.firstChild)) {
-        frag.appendChild(node);
-    }
-
-    range.insertNode(frag);
-}
 async function handleModuleSave(e) {
     e.preventDefault();
 
@@ -386,8 +369,8 @@ function insertHtmlAtCursor(html) {
 
     const el = document.createElement('div');
     el.innerHTML = html;
-    const frag = document.createDocumentFragment();
 
+    const frag = document.createDocumentFragment();
     let node;
     while ((node = el.firstChild)) {
         frag.appendChild(node);
@@ -395,25 +378,8 @@ function insertHtmlAtCursor(html) {
 
     range.insertNode(frag);
     range.collapse(false);
-  const toolbar = document.querySelector('.rich-text-toolbar');
-
-toolbar.addEventListener('click', (e) => {
-    const btn = e.target.closest('.toolbar-btn');
-    if (!btn) return;
-
-    // MEDIA
-    const insertType = btn.getAttribute('data-insert');
-    if (insertType === 'image') {
-        insertImage();
-        return;
-    }
-    if (insertType === 'pdf') {
-        insertPdf();
-        return;
-    }
-});
-
 }
+
 
 async function insertImage() {
     const input = document.createElement('input');
