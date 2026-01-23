@@ -400,4 +400,27 @@ function setupRichTextEditor() {
             document.execCommand(command, false, value || null);
         }
     });
+  toolbar.addEventListener('click', async (e) => {
+    const btn = e.target.closest('.toolbar-btn');
+    if (!btn) return;
+
+    const insertType = btn.dataset.insert;
+    if (!insertType) return;
+
+    e.preventDefault();
+
+    if (insertType === 'embed') {
+        const code = prompt('Wklej kod iframe');
+        if (code) {
+            insertHtmlAtCursor(`
+                <div class="module-embed-container">
+                    ${code}
+                </div>
+            `);
+        }
+    }
+
+    // PDF / VIDEO – upload (osobne inputy hidden)
+});
+
 }
