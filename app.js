@@ -1450,14 +1450,21 @@ document.addEventListener('DOMContentLoaded', async () => {
             if(!targetId) return;
 
             if (pollingInterval) {
-    clearInterval(pollingInterval);
-    pollingInterval = null;
-}
+                clearInterval(pollingInterval);
+                pollingInterval = null;
+            }
 
-
-            // Pobierz tekst z przycisku, pomijając ikonę i badge
-            const textNode = Array.from(btn.childNodes).find(node => node.nodeType === Node.TEXT_NODE);
-            const targetText = textNode ? textNode.textContent.trim() : "Evair";
+            // Pobierz tekst z przycisku - sprawdź .nav-text lub bezpośredni text node
+            let targetText = "Evair";
+            const navTextElement = btn.querySelector('.nav-text');
+            if (navTextElement) {
+                targetText = navTextElement.textContent.trim();
+            } else {
+                const textNode = Array.from(btn.childNodes).find(node => node.nodeType === Node.TEXT_NODE);
+                if (textNode) {
+                    targetText = textNode.textContent.trim();
+                }
+            }
 
             // Update UI
             navButtons.forEach(b => b.classList.remove('active'));
@@ -1476,9 +1483,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
             window.scrollTo(0, 0);
 
-            // Load events when switching to events section
+            // Load content when switching to specific sections
             if (targetId === 'events') {
                 renderEvents();
+            } else if (targetId === 'training') {
+                // Training modules are already loaded by initTrainingModules
+            } else if (targetId === 'announcements') {
+                // Announcements are already loaded
             }
         });
     });
