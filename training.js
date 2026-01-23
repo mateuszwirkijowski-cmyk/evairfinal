@@ -428,7 +428,13 @@ async function insertPdf() {
         const file = input.files[0];
         if (!file) return;
 
-        const path = `pdfs/${Date.now()}_${file.name}`;
+        const safeName = file.name
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '') // usuń polskie znaki
+    .replace(/[^a-zA-Z0-9._-]/g, '_'); // spacje i znaki specjalne
+
+const path = `pdfs/${Date.now()}_${safeName}`;
+
 
         const { error } = await supabase.storage
             .from('training-files')
