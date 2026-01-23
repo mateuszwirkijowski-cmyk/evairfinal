@@ -41,6 +41,7 @@ import {
 // ============================================
 // ADMIN FUNCTIONS
 // ============================================
+let currentConversation = null;
 
 let isAdminUser = false;
 let uiTextsCache = {};
