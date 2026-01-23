@@ -430,3 +430,40 @@ async function insertImage() {
 
     input.click();
 }
+
+async function insertPdf() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.pdf';
+
+    input.onchange = async () => {
+        const file = input.files[0];
+        if (!file) return;
+
+        const path = `pdfs/${Date.now()}_${file.name}`;
+
+        const { error } = await supabase.storage
+            .from('training-files')
+            .upload(path, file);
+
+        if (error) {
+            alert('Błąd uploadu PDF');
+            return;
+        }
+
+        const { data } = supabase.storage
+            .from('training-files')
+            .getPublicUrl(path);
+
+        insertHtmlAtCursor(`
+            <div class="module-pdf-container">
+                <h4>Dokument PDF</h4>
+                <a href="${data.publicUrl}" target="_blank" download>
+                    📄 Pobierz PDF
+                </a>
+            </div>
+        `);
+    };
+
+    input.click();
+}
