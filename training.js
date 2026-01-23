@@ -21,7 +21,7 @@ window.editTrainingModule = async function (moduleId) {
         console.error('❌ edit-module-modal nie istnieje w DOM');
         return;
     }
-
+};
   
 export async function initTrainingModules(isAdmin) {
     console.log('[TRAINING] Initializing training modules, isAdmin:', isAdmin);
