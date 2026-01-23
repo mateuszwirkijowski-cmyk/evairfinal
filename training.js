@@ -289,94 +289,45 @@ async function handleModuleSave(e) {
     const moduleId = document.getElementById('edit-module-id').value;
     const title = document.getElementById('edit-module-name').value.trim();
     const content = document.getElementById('edit-module-content').innerHTML;
-    const embedCode = document.getElementById('edit-module-embed').value.trim();
     const isActive = document.getElementById('edit-module-active').checked;
-    const orderIndex = parseInt(document.getElementById('edit-module-name').getAttribute('data-order')) || 0;
-
-    const videoFile = document.getElementById('edit-module-video').files[0];
-    const pdfFile = document.getElementById('edit-module-pdf').files[0];
+    const orderIndex = parseInt(
+        document.getElementById('edit-module-name').getAttribute('data-order')
+    ) || 0;
 
     try {
-        let videoUrl = null;
-        let pdfUrl = null;
-
-        if (moduleId) {
-            const { data: existing } = await supabase
-                .from('training_modules')
-                .select('video_url, pdf_url')
-                .eq('id', moduleId)
-                .single();
-
-            videoUrl = existing?.video_url;
-            pdfUrl = existing?.pdf_url;
-        }
-
-        if (videoFile) {
-            if (videoUrl) {
-                await supabase.storage.from('training-files').remove([videoUrl]);
-            }
-
-            const videoPath = `videos/${Date.now()}_${videoFile.name}`;
-            const { error: uploadError } = await supabase.storage
-                .from('training-files')
-                .upload(videoPath, videoFile);
-
-            if (uploadError) throw uploadError;
-            videoUrl = videoPath;
-        }
-
-        if (pdfFile) {
-            if (pdfUrl) {
-                await supabase.storage.from('training-files').remove([pdfUrl]);
-            }
-
-            const pdfPath = `pdfs/${Date.now()}_${pdfFile.name}`;
-            const { error: uploadError } = await supabase.storage
-                .from('training-files')
-                .upload(pdfPath, pdfFile);
-
-            if (uploadError) throw uploadError;
-            pdfUrl = pdfPath;
-        }
-
         const moduleData = {
             title,
             content,
-            embed_code: embedCode || null,
-            video_url: videoUrl,
-            pdf_url: pdfUrl,
             is_active: isActive,
             order_index: orderIndex,
             updated_at: new Date().toISOString()
         };
 
         if (moduleId) {
-            const { error } = await supabase
+            await supabase
                 .from('training_modules')
                 .update(moduleData)
                 .eq('id', moduleId);
-
-            if (error) throw error;
         } else {
             const { data: user } = await supabase.auth.getUser();
-            moduleData.created_by = user.user.id;
-
-            const { error } = await supabase
+            await supabase
                 .from('training_modules')
-                .insert([moduleData]);
-
-            if (error) throw error;
+                .insert([{
+                    ...moduleData,
+                    created_by: user.user.id
+                }]);
         }
 
         alert('Moduł został zapisany');
-        window.closeEditModuleModal();
+        closeEditModuleModal();
         await loadAdminModulesList();
         await loadTrainingModules();
-    } catch (error) {
-        console.error('[TRAINING] Error saving module:', error);
-        alert('Błąd zapisywania modułu: ' + error.message);
+    } catch (err) {
+        console.error('[TRAINING] Error saving module:', err);
+        alert('Błąd zapisu modułu');
     }
 }
+
 
 function setupRichTextEditor() {
     const toolbar = document.querySelector('.rich-text-toolbar');
