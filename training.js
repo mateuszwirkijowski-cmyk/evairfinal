@@ -2,7 +2,27 @@ import { supabase } from './auth.js';
 
 let currentModuleId = null;
 let allModules = [];
+document.addEventListener('DOMContentLoaded', () => {
+    initTrainingAdmin();
+});
+function initTrainingAdmin() {
+    const addNewModuleBtn = document.getElementById('add-new-module-btn');
 
+    if (addNewModuleBtn) {
+        addNewModuleBtn.onclick = () => {
+            window.editTrainingModule('new');
+        };
+    }
+}
+
+window.editTrainingModule = async function (moduleId) {
+    const modal = document.getElementById('edit-module-modal');
+    if (!modal) {
+        console.error('❌ edit-module-modal nie istnieje w DOM');
+        return;
+    }
+
+  
 export async function initTrainingModules(isAdmin) {
     console.log('[TRAINING] Initializing training modules, isAdmin:', isAdmin);
 
