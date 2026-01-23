@@ -1070,8 +1070,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             // User logged in - reset and reload
             console.log('[AUTH] User logged in - resetting app state');
 
-            // Reset realtime subscriptions
-            unsubscribeFromMessages();
+            /
 
             // Reset conversation state
             if (pollingInterval) {
@@ -1147,7 +1146,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             // User logged out - clean up
             console.log('[AUTH] User logged out - cleaning up');
 
-            unsubscribeFromMessages();
+            
             if (pollingInterval) {
                 clearInterval(pollingInterval);
                 pollingInterval = null;
