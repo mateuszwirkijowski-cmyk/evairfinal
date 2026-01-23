@@ -136,6 +136,8 @@ async function loadUiTexts() {
 function enableAdminEditing() {
     enableChannelEditing();
     enableAllEditableElements();
+    enableEditableTextElements();
+    enableEditableHtmlElements();
     console.log('[ADMIN] Admin editing enabled');
 }
 
@@ -180,6 +182,180 @@ function enableAllEditableElements() {
     console.log(`[ADMIN] Enabled editing for ${editableElements.length} elements with data-editable-id`);
 }
 
+// Enable inline editing for elements with editable-text class
+function enableEditableTextElements() {
+    const textElements = document.querySelectorAll('.editable-text[data-text-id]');
+
+    textElements.forEach(element => {
+        const textId = element.getAttribute('data-text-id');
+
+        element.contentEditable = 'true';
+        element.style.cursor = 'text';
+        element.style.outline = '1px dashed rgba(220, 38, 38, 0.3)';
+        element.style.padding = '4px';
+        element.title = 'Kliknij aby edytować (tylko dla admina)';
+
+        const originalContent = element.textContent;
+        element.setAttribute('data-original-content', originalContent);
+
+        element.addEventListener('blur', async () => {
+            const newContent = element.textContent.trim();
+            const originalContent = element.getAttribute('data-original-content');
+
+            if (newContent && newContent !== originalContent) {
+                const success = await updateUiText(textId, newContent);
+                if (success) {
+                    element.setAttribute('data-original-content', newContent);
+                    console.log(`[ADMIN] Updated ${textId}`);
+                }
+            }
+        });
+
+        element.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                element.blur();
+            }
+        });
+    });
+
+    console.log(`[ADMIN] Enabled inline editing for ${textElements.length} text elements`);
+}
+
+// Enable HTML editing for elements with editable-html class
+function enableEditableHtmlElements() {
+    const htmlElements = document.querySelectorAll('.editable-html[data-text-id]');
+
+    htmlElements.forEach(element => {
+        const textId = element.getAttribute('data-text-id');
+
+        // Add visual indicator for admin
+        element.style.position = 'relative';
+        element.style.outline = '2px dashed rgba(220, 38, 38, 0.4)';
+        element.style.padding = '8px';
+
+        // Create edit button
+        const editBtn = document.createElement('button');
+        editBtn.textContent = '✏️ Edytuj HTML';
+        editBtn.className = 'btn btn-sm btn-outline';
+        editBtn.style.position = 'absolute';
+        editBtn.style.top = '8px';
+        editBtn.style.right = '8px';
+        editBtn.style.zIndex = '10';
+        editBtn.style.fontSize = '12px';
+        editBtn.style.padding = '4px 8px';
+
+        editBtn.onclick = () => openHtmlEditor(textId, element);
+
+        element.style.position = 'relative';
+        element.appendChild(editBtn);
+    });
+
+    console.log(`[ADMIN] Enabled HTML editing for ${htmlElements.length} HTML elements`);
+}
+
+// Open HTML editor modal
+function openHtmlEditor(textId, element) {
+    const currentHtml = uiTextsCache[textId] || element.innerHTML;
+
+    const modal = document.createElement('div');
+    modal.style.position = 'fixed';
+    modal.style.top = '0';
+    modal.style.left = '0';
+    modal.style.width = '100%';
+    modal.style.height = '100%';
+    modal.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+    modal.style.display = 'flex';
+    modal.style.alignItems = 'center';
+    modal.style.justifyContent = 'center';
+    modal.style.zIndex = '9999';
+
+    const modalContent = document.createElement('div');
+    modalContent.style.backgroundColor = 'white';
+    modalContent.style.padding = '24px';
+    modalContent.style.borderRadius = '8px';
+    modalContent.style.maxWidth = '800px';
+    modalContent.style.width = '90%';
+    modalContent.style.maxHeight = '80vh';
+    modalContent.style.display = 'flex';
+    modalContent.style.flexDirection = 'column';
+
+    const title = document.createElement('h3');
+    title.textContent = `Edytuj HTML: ${textId}`;
+    title.style.marginBottom = '16px';
+    title.style.color = '#333';
+
+    const textarea = document.createElement('textarea');
+    textarea.value = currentHtml;
+    textarea.style.width = '100%';
+    textarea.style.minHeight = '400px';
+    textarea.style.fontFamily = 'monospace';
+    textarea.style.fontSize = '14px';
+    textarea.style.padding = '12px';
+    textarea.style.border = '1px solid #ccc';
+    textarea.style.borderRadius = '4px';
+    textarea.style.marginBottom = '16px';
+    textarea.style.resize = 'vertical';
+
+    const buttonContainer = document.createElement('div');
+    buttonContainer.style.display = 'flex';
+    buttonContainer.style.gap = '12px';
+    buttonContainer.style.justifyContent = 'flex-end';
+
+    const saveBtn = document.createElement('button');
+    saveBtn.textContent = 'Zapisz';
+    saveBtn.className = 'btn btn-primary';
+    saveBtn.onclick = async () => {
+        const newHtml = textarea.value.trim();
+        if (newHtml) {
+            const success = await updateUiText(textId, newHtml);
+            if (success) {
+                element.innerHTML = newHtml;
+
+                // Re-add edit button after updating innerHTML
+                const editBtn = document.createElement('button');
+                editBtn.textContent = '✏️ Edytuj HTML';
+                editBtn.className = 'btn btn-sm btn-outline';
+                editBtn.style.position = 'absolute';
+                editBtn.style.top = '8px';
+                editBtn.style.right = '8px';
+                editBtn.style.zIndex = '10';
+                editBtn.style.fontSize = '12px';
+                editBtn.style.padding = '4px 8px';
+                editBtn.onclick = () => openHtmlEditor(textId, element);
+                element.appendChild(editBtn);
+
+                console.log(`[ADMIN] Updated HTML for ${textId}`);
+                document.body.removeChild(modal);
+            }
+        }
+    };
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.textContent = 'Anuluj';
+    cancelBtn.className = 'btn btn-outline';
+    cancelBtn.onclick = () => {
+        document.body.removeChild(modal);
+    };
+
+    buttonContainer.appendChild(cancelBtn);
+    buttonContainer.appendChild(saveBtn);
+
+    modalContent.appendChild(title);
+    modalContent.appendChild(textarea);
+    modalContent.appendChild(buttonContainer);
+    modal.appendChild(modalContent);
+
+    document.body.appendChild(modal);
+
+    // Close on background click
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            document.body.removeChild(modal);
+        }
+    });
+}
+
 // Apply UI texts to all editable elements
 function applyUiTexts() {
     // Apply to navigation buttons (old system)
@@ -214,6 +390,24 @@ function applyUiTexts() {
             } else {
                 element.textContent = uiTextsCache[elementId];
             }
+        }
+    });
+
+    // Apply to elements with data-text-id attribute (editable text)
+    const textElements = document.querySelectorAll('.editable-text[data-text-id]');
+    textElements.forEach(element => {
+        const textId = element.getAttribute('data-text-id');
+        if (uiTextsCache[textId]) {
+            element.textContent = uiTextsCache[textId];
+        }
+    });
+
+    // Apply to elements with editable-html class (editable HTML content)
+    const htmlElements = document.querySelectorAll('.editable-html[data-text-id]');
+    htmlElements.forEach(element => {
+        const textId = element.getAttribute('data-text-id');
+        if (uiTextsCache[textId]) {
+            element.innerHTML = uiTextsCache[textId];
         }
     });
 }
