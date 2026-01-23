@@ -655,61 +655,32 @@
                     <div class="form-group">
     <label>Treść modułu</label>
 
-    <div class="rich-text-toolbar">
-        <!-- FORMATOWANIE TEKSTU -->
-        <button type="button" class="toolbar-btn" data-command="bold" title="Pogrubienie">
-            <strong>B</strong>
-        </button>
-        <button type="button" class="toolbar-btn" data-command="italic" title="Kursywa">
-            <em>I</em>
-        </button>
-        <button type="button" class="toolbar-btn" data-command="underline" title="Podkreślenie">
-            <u>U</u>
-        </button>
+   <div class="rich-text-toolbar">
+    <!-- TEKST -->
+    <button type="button" class="toolbar-btn" data-command="bold"><strong>B</strong></button>
+    <button type="button" class="toolbar-btn" data-command="italic"><em>I</em></button>
+    <button type="button" class="toolbar-btn" data-command="underline"><u>U</u></button>
 
-        <span class="toolbar-separator">|</span>
+    <span class="toolbar-separator">|</span>
 
-        <!-- STRUKTURA -->
-        <button type="button" class="toolbar-btn" data-command="formatBlock" data-value="h2" title="Nagłówek 2">
-            H2
-        </button>
-        <button type="button" class="toolbar-btn" data-command="formatBlock" data-value="h3" title="Nagłówek 3">
-            H3
-        </button>
-        <button type="button" class="toolbar-btn" data-command="formatBlock" data-value="p" title="Paragraf">
-            P
-        </button>
+    <!-- STRUKTURA -->
+    <button type="button" class="toolbar-btn" data-command="formatBlock" data-value="h2">H2</button>
+    <button type="button" class="toolbar-btn" data-command="formatBlock" data-value="h3">H3</button>
+    <button type="button" class="toolbar-btn" data-command="formatBlock" data-value="p">P</button>
 
-        <span class="toolbar-separator">|</span>
+    <span class="toolbar-separator">|</span>
 
-        <!-- LISTY -->
-        <button type="button" class="toolbar-btn" data-command="insertUnorderedList" title="Lista punktowana">
-            • Lista
-        </button>
-        <button type="button" class="toolbar-btn" data-command="insertOrderedList" title="Lista numerowana">
-            1. Lista
-        </button>
+    <!-- LISTY -->
+    <button type="button" class="toolbar-btn" data-command="insertUnorderedList">• Lista</button>
+    <button type="button" class="toolbar-btn" data-command="insertOrderedList">1. Lista</button>
 
-        <span class="toolbar-separator">|</span>
+    <span class="toolbar-separator">|</span>
 
-        <!-- LINIA -->
-        <button type="button" class="toolbar-btn" data-command="insertHorizontalRule" title="Linia pozioma">
-            ―
-        </button>
+    <!-- MEDIA -->
+    <button type="button" class="toolbar-btn" data-insert="image">🖼️ Obraz</button>
+    <button type="button" class="toolbar-btn" data-insert="pdf">📄 PDF</button>
+</div>
 
-        <span class="toolbar-separator">|</span>
-
-        <!-- MEDIA / BLOKI -->
-        <button type="button" class="toolbar-btn" data-insert="pdf" title="Wstaw PDF">
-            📄 PDF
-        </button>
-        <button type="button" class="toolbar-btn" data-insert="video" title="Wstaw wideo">
-            🎥 Video
-        </button>
-        <button type="button" class="toolbar-btn" data-insert="embed" title="Wstaw embed (iframe)">
-            ⧉ Embed
-        </button>
-    </div>
 
     <div id="edit-module-content"
          class="rich-text-editor"
