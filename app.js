@@ -45,6 +45,7 @@ import {
 let isAdminUser = false;
 let uiTextsCache = {};
 let currentUserId = null;
+let pollingInterval = null;
 
 // Check if current user is admin - ROBUST WITH FALLBACK
 function checkIfAdmin(userData) {
