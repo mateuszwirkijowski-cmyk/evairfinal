@@ -396,3 +396,37 @@ function insertHtmlAtCursor(html) {
     range.insertNode(frag);
     range.collapse(false);
 }
+
+async function insertImage() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/png,image/jpeg';
+
+    input.onchange = async () => {
+        const file = input.files[0];
+        if (!file) return;
+
+        const path = `images/${Date.now()}_${file.name}`;
+
+        const { error } = await supabase.storage
+            .from('training-files')
+            .upload(path, file);
+
+        if (error) {
+            alert('Błąd uploadu obrazu');
+            return;
+        }
+
+        const { data } = supabase.storage
+            .from('training-files')
+            .getPublicUrl(path);
+
+        insertHtmlAtCursor(`
+            <div class="module-image-container">
+                <img src="${data.publicUrl}" alt="">
+            </div>
+        `);
+    };
+
+    input.click();
+}
