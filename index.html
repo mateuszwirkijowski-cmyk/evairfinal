@@ -482,7 +482,7 @@
             <p>© Evair 2025</p>
             <nav class="footer-nav">
                 <a href="#" id="open-regulations">Regulamin</a> |
-                <a href="#">Polityka prywatności</a>
+                <a href="#" id="open-privacy">Polityka prywatności</a>
             </nav>
         </div>
     </footer>
@@ -512,11 +512,20 @@
                 <h2>Regulamin Platformy Evair</h2>
                 <button class="close-modal-btn" onclick="closeRegulations()">Zamknij ✕</button>
             </div>
-            <div class="modal-body-scroll">
-                <h3>1. Postanowienia ogólne</h3>
-                <p>Platforma służy do wymiany informacji...</p>
-                <h3>2. Kultura wypowiedzi</h3>
-                <p>Wszyscy użytkownicy zobowiązani są do kulturalnego zachowania...</p>
+            <div class="modal-body-scroll" id="regulations-content">
+                <p style="text-align: center; color: #999;">Ładowanie...</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="privacy-modal" class="modal hidden">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2>Polityka Prywatności</h2>
+                <button class="close-modal-btn" onclick="closePrivacyPolicy()">Zamknij ✕</button>
+            </div>
+            <div class="modal-body-scroll" id="privacy-content">
+                <p style="text-align: center; color: #999;">Ładowanie...</p>
             </div>
         </div>
     </div>

@@ -2127,19 +2127,133 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // ============================================
-    // REGULAMIN MODAL
+    // REGULAMIN AND PRIVACY POLICY MODALS
     // ============================================
 
     const regLink = document.getElementById('open-regulations');
     const regModal = document.getElementById('regulations-modal');
-    if(regLink && regModal) {
-        regLink.addEventListener('click', (e) => {
-            e.preventDefault();
-            regModal.classList.remove('hidden');
+    const regContent = document.getElementById('regulations-content');
+
+    const privacyLink = document.getElementById('open-privacy');
+    const privacyModal = document.getElementById('privacy-modal');
+    const privacyContent = document.getElementById('privacy-content');
+
+    // Load Terms of Service content from database
+    async function loadTermsOfService() {
+        try {
+            const { data, error } = await supabase
+                .from('ui_texts')
+                .select('content')
+                .eq('element_id', 'terms_of_service')
+                .maybeSingle();
+
+            if (error) throw error;
+
+            if (data && regContent) {
+                regContent.innerHTML = data.content;
+
+                // Enable editing for admins
+                if (isAdminUser) {
+                    enableModalContentEditing(regContent, 'terms_of_service');
+                }
+            }
+        } catch (error) {
+            console.error('Error loading terms of service:', error);
+            if (regContent) {
+                regContent.innerHTML = '<p style="text-align: center; color: #dc2626;">Błąd ładowania regulaminu</p>';
+            }
+        }
+    }
+
+    // Load Privacy Policy content from database
+    async function loadPrivacyPolicy() {
+        try {
+            const { data, error } = await supabase
+                .from('ui_texts')
+                .select('content')
+                .eq('element_id', 'privacy_policy')
+                .maybeSingle();
+
+            if (error) throw error;
+
+            if (data && privacyContent) {
+                privacyContent.innerHTML = data.content;
+
+                // Enable editing for admins
+                if (isAdminUser) {
+                    enableModalContentEditing(privacyContent, 'privacy_policy');
+                }
+            }
+        } catch (error) {
+            console.error('Error loading privacy policy:', error);
+            if (privacyContent) {
+                privacyContent.innerHTML = '<p style="text-align: center; color: #dc2626;">Błąd ładowania polityki prywatności</p>';
+            }
+        }
+    }
+
+    // Enable content editing for admins in modal
+    function enableModalContentEditing(contentElement, elementId) {
+        contentElement.contentEditable = 'true';
+        contentElement.style.cursor = 'text';
+        contentElement.style.outline = '2px dashed rgba(220, 38, 38, 0.4)';
+        contentElement.style.padding = '8px';
+        contentElement.title = 'Kliknij aby edytować treść (tylko dla admina)';
+
+        // Save original content
+        const originalContent = contentElement.innerHTML.trim();
+        contentElement.setAttribute('data-original-content', originalContent);
+
+        // Handle save on blur
+        contentElement.addEventListener('blur', async () => {
+            const newContent = contentElement.innerHTML.trim();
+            const original = contentElement.getAttribute('data-original-content');
+
+            if (newContent && newContent !== original) {
+                const success = await updateUiText(elementId, newContent);
+                if (success) {
+                    contentElement.setAttribute('data-original-content', newContent);
+                    console.log(`[ADMIN] Updated ${elementId}`);
+
+                    // Show feedback
+                    const feedback = document.createElement('div');
+                    feedback.textContent = 'Zapisano zmiany';
+                    feedback.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #10b981; color: white; padding: 12px 24px; border-radius: 8px; z-index: 10000; box-shadow: 0 4px 12px rgba(0,0,0,0.15);';
+                    document.body.appendChild(feedback);
+                    setTimeout(() => feedback.remove(), 3000);
+                } else {
+                    // Revert on error
+                    contentElement.innerHTML = original;
+                    alert('Wystąpił błąd podczas zapisywania zmian');
+                }
+            }
         });
     }
+
+    // Open Regulations modal
+    if(regLink && regModal) {
+        regLink.addEventListener('click', async (e) => {
+            e.preventDefault();
+            regModal.classList.remove('hidden');
+            await loadTermsOfService();
+        });
+    }
+
     window.closeRegulations = function() {
         if(regModal) regModal.classList.add('hidden');
+    };
+
+    // Open Privacy Policy modal
+    if(privacyLink && privacyModal) {
+        privacyLink.addEventListener('click', async (e) => {
+            e.preventDefault();
+            privacyModal.classList.remove('hidden');
+            await loadPrivacyPolicy();
+        });
+    }
+
+    window.closePrivacyPolicy = function() {
+        if(privacyModal) privacyModal.classList.add('hidden');
     };
 
     // ============================================
