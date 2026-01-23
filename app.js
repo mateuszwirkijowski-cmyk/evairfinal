@@ -2454,7 +2454,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                                 ${avatar ? `<img src="${avatar}" alt="${authorName}">` : `<div class="avatar-initials">${getInitials(authorName)}</div>`}
                             </div>
                             <div>
-                                <div class="post-author-name"</div>
+                                <div class="post-author-name">${authorName}</div>
                                 <div class="post-date">${timeStr}</div>
                             </div>
                         </div>
