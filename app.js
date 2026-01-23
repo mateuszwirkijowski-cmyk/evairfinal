@@ -3188,4 +3188,30 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
+    // ============================================
+    // LOAD FOOTER LOCATION TEXT
+    // ============================================
+    async function loadFooterLocation() {
+        try {
+            const { data, error } = await supabase
+                .from('ui_texts')
+                .select('content')
+                .eq('element_id', 'footer_location_address')
+                .maybeSingle();
+
+            if (error) throw error;
+
+            if (data && data.content) {
+                const locationElement = document.getElementById('footer-location-address');
+                if (locationElement) {
+                    locationElement.innerHTML = data.content;
+                }
+            }
+        } catch (error) {
+            console.error('Error loading footer location:', error);
+        }
+    }
+
+    await loadFooterLocation();
+
 });
