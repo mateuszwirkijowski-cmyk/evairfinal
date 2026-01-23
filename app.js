@@ -1070,7 +1070,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             // User logged in - reset and reload
             console.log('[AUTH] User logged in - resetting app state');
 
-            /
+            
 
             // Reset conversation state
             if (pollingInterval) {
