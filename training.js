@@ -349,16 +349,14 @@ function setupRichTextEditor() {
 
     e.preventDefault();
 
-    if (insertType === 'embed') {
-        const code = prompt('Wklej kod iframe');
-        if (code) {
-            insertHtmlAtCursor(`
-                <div class="module-embed-container">
-                    ${code}
-                </div>
-            `);
-        }
-    }
+    if (insertType === 'image') {
+    await insertImage();
+}
+
+if (insertType === 'pdf') {
+    await insertPdf();
+}
+
 
     // PDF / VIDEO – upload (osobne inputy hidden)
 });
