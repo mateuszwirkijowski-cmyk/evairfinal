@@ -265,7 +265,24 @@ function setupModuleEventListeners() {
         form.onsubmit = handleModuleSave;
     }
 }
+function insertHtmlAtCursor(html) {
+    const sel = window.getSelection();
+    if (!sel || !sel.rangeCount) return;
 
+    const range = sel.getRangeAt(0);
+    range.deleteContents();
+
+    const el = document.createElement('div');
+    el.innerHTML = html;
+
+    const frag = document.createDocumentFragment();
+    let node;
+    while ((node = el.firstChild)) {
+        frag.appendChild(node);
+    }
+
+    range.insertNode(frag);
+}
 async function handleModuleSave(e) {
     e.preventDefault();
 
