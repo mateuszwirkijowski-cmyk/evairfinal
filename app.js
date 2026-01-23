@@ -2127,6 +2127,229 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // ============================================
+    // ANNOUNCEMENTS (OGŁOSZENIA) CRUD
+    // ============================================
+
+    const announcementsList = document.getElementById('announcements-list');
+    const announcementForm = document.getElementById('create-announcement-form');
+    const announcementCreatorCard = document.getElementById('admin-announcement-creator');
+    let editingAnnouncementId = null;
+
+    // Load all announcements from database
+    async function loadAnnouncements() {
+        try {
+            const { data: announcements, error } = await supabase
+                .from('announcements')
+                .select('*, profiles!announcements_author_id_fkey(full_name)')
+                .order('created_at', { ascending: false });
+
+            if (error) throw error;
+
+            if (!announcements || announcements.length === 0) {
+                announcementsList.innerHTML = '<p style="text-align: center; color: #999; padding: 40px;">Brak ogłoszeń</p>';
+                return;
+            }
+
+            announcementsList.innerHTML = announcements.map(announcement => {
+                const date = new Date(announcement.created_at).toLocaleDateString('pl-PL', {
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric'
+                });
+
+                const adminButtons = isAdminUser ? `
+                    <div class="admin-actions" style="margin-top: 12px; display: flex; gap: 8px;">
+                        <button class="btn btn-outline btn-small" onclick="editAnnouncement('${announcement.id}')">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                            </svg>
+                            Edytuj
+                        </button>
+                        <button class="btn btn-text btn-small" style="color: #dc2626;" onclick="deleteAnnouncement('${announcement.id}')">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="3 6 5 6 21 6"></polyline>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                            </svg>
+                            Usuń
+                        </button>
+                    </div>
+                ` : '';
+
+                return `
+                    <div class="card announcement-card">
+                        <div class="card-header">
+                            <h3>${escapeHtml(announcement.title)}</h3>
+                            <span class="date">${date}</span>
+                        </div>
+                        <p>${escapeHtml(announcement.content)}</p>
+                        <span class="tag">${escapeHtml(announcement.tag)}</span>
+                        ${adminButtons}
+                    </div>
+                `;
+            }).join('');
+
+        } catch (error) {
+            console.error('Error loading announcements:', error);
+            announcementsList.innerHTML = '<p style="text-align: center; color: #dc2626; padding: 40px;">Błąd ładowania ogłoszeń</p>';
+        }
+    }
+
+    // Create or update announcement
+    if (announcementForm) {
+        announcementForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const title = document.getElementById('announcement-title').value.trim();
+            const content = document.getElementById('announcement-content').value.trim();
+            const tag = document.getElementById('announcement-tag').value;
+            const editId = document.getElementById('announcement-edit-id').value;
+
+            if (!title || !content) {
+                alert('Wypełnij wszystkie pola');
+                return;
+            }
+
+            try {
+                const submitBtn = document.getElementById('announcement-submit-btn');
+                submitBtn.disabled = true;
+                submitBtn.textContent = editId ? 'Zapisywanie...' : 'Publikowanie...';
+
+                if (editId) {
+                    // Update existing announcement
+                    const { error } = await supabase
+                        .from('announcements')
+                        .update({
+                            title: title,
+                            content: content,
+                            tag: tag
+                        })
+                        .eq('id', editId);
+
+                    if (error) throw error;
+
+                    console.log('[ANNOUNCEMENTS] Updated announcement:', editId);
+                } else {
+                    // Create new announcement
+                    const { error } = await supabase
+                        .from('announcements')
+                        .insert({
+                            title: title,
+                            content: content,
+                            tag: tag,
+                            author_id: currentUserId
+                        });
+
+                    if (error) throw error;
+
+                    console.log('[ANNOUNCEMENTS] Created new announcement');
+                }
+
+                // Reset form
+                announcementForm.reset();
+                document.getElementById('announcement-edit-id').value = '';
+                document.getElementById('announcement-form-title').textContent = 'Dodaj ogłoszenie';
+                document.getElementById('announcement-submit-btn').textContent = 'Opublikuj';
+                document.getElementById('announcement-cancel-btn').style.display = 'none';
+                editingAnnouncementId = null;
+
+                // Reload announcements
+                await loadAnnouncements();
+
+            } catch (error) {
+                console.error('Error saving announcement:', error);
+                alert('Wystąpił błąd podczas zapisywania ogłoszenia');
+            } finally {
+                const submitBtn = document.getElementById('announcement-submit-btn');
+                submitBtn.disabled = false;
+                submitBtn.textContent = editingAnnouncementId ? 'Zapisz' : 'Opublikuj';
+            }
+        });
+    }
+
+    // Edit announcement
+    window.editAnnouncement = async function(announcementId) {
+        try {
+            const { data: announcement, error } = await supabase
+                .from('announcements')
+                .select('*')
+                .eq('id', announcementId)
+                .maybeSingle();
+
+            if (error) throw error;
+            if (!announcement) {
+                alert('Ogłoszenie nie zostało znalezione');
+                return;
+            }
+
+            // Fill form with announcement data
+            document.getElementById('announcement-edit-id').value = announcement.id;
+            document.getElementById('announcement-title').value = announcement.title;
+            document.getElementById('announcement-content').value = announcement.content;
+            document.getElementById('announcement-tag').value = announcement.tag;
+
+            // Update UI
+            document.getElementById('announcement-form-title').textContent = 'Edytuj ogłoszenie';
+            document.getElementById('announcement-submit-btn').textContent = 'Zapisz zmiany';
+            document.getElementById('announcement-cancel-btn').style.display = 'inline-block';
+            editingAnnouncementId = announcementId;
+
+            // Scroll to form
+            announcementCreatorCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+        } catch (error) {
+            console.error('Error loading announcement for edit:', error);
+            alert('Wystąpił błąd podczas ładowania ogłoszenia');
+        }
+    };
+
+    // Cancel editing
+    const cancelBtn = document.getElementById('announcement-cancel-btn');
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', () => {
+            announcementForm.reset();
+            document.getElementById('announcement-edit-id').value = '';
+            document.getElementById('announcement-form-title').textContent = 'Dodaj ogłoszenie';
+            document.getElementById('announcement-submit-btn').textContent = 'Opublikuj';
+            cancelBtn.style.display = 'none';
+            editingAnnouncementId = null;
+        });
+    }
+
+    // Delete announcement
+    window.deleteAnnouncement = async function(announcementId) {
+        if (!confirm('Czy na pewno chcesz usunąć to ogłoszenie?')) {
+            return;
+        }
+
+        try {
+            const { error } = await supabase
+                .from('announcements')
+                .delete()
+                .eq('id', announcementId);
+
+            if (error) throw error;
+
+            console.log('[ANNOUNCEMENTS] Deleted announcement:', announcementId);
+
+            // Reload announcements
+            await loadAnnouncements();
+
+        } catch (error) {
+            console.error('Error deleting announcement:', error);
+            alert('Wystąpił błąd podczas usuwania ogłoszenia');
+        }
+    };
+
+    // Show announcement creator for admins
+    if (isAdminUser && announcementCreatorCard) {
+        announcementCreatorCard.style.display = 'block';
+    }
+
+    // Load announcements on page load
+    loadAnnouncements();
+
+    // ============================================
     // REGULAMIN AND PRIVACY POLICY MODALS
     // ============================================
 

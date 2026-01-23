@@ -159,8 +159,9 @@
 
                 <!-- Admin panel for creating announcements (visible only to admins) -->
                 <div id="admin-announcement-creator" class="card announcement-creator-card" style="display: none;">
-                    <h3>Dodaj ogłoszenie</h3>
+                    <h3 id="announcement-form-title">Dodaj ogłoszenie</h3>
                     <form id="create-announcement-form">
+                        <input type="hidden" id="announcement-edit-id">
                         <div class="form-group">
                             <label for="announcement-title">Tytuł ogłoszenia</label>
                             <input type="text" id="announcement-title" class="input-field" placeholder="Tytuł..." required>
@@ -178,27 +179,15 @@
                             </select>
                         </div>
                         <div class="form-actions">
-                            <button type="submit" class="btn btn-primary">Opublikuj</button>
+                            <button type="submit" class="btn btn-primary" id="announcement-submit-btn">Opublikuj</button>
+                            <button type="button" class="btn btn-outline" id="announcement-cancel-btn" style="display: none;">Anuluj</button>
                         </div>
                     </form>
                 </div>
 
-                <div class="card announcement-card">
-                    <div class="card-header">
-                        <h3>Spotkanie organizacyjne</h3>
-                        <span class="date">10 marca 2025</span>
-                    </div>
-                    <p>Zapraszamy wszystkich na krótkie spotkanie online dotyczące nowego sezonu lotów. Link wyślemy w dniu spotkania.</p>
-                    <span class="tag">Ważne</span>
-                </div>
-
-                <div class="card announcement-card">
-                    <div class="card-header">
-                        <h3>Przerwa techniczna</h3>
-                        <span class="date">5 marca 2025</span>
-                    </div>
-                    <p>W nocy z soboty na niedzielę platforma może być niedostępna przez około godzinę. Przepraszamy za utrudnienia.</p>
-                    <span class="tag">Techniczne</span>
+                <!-- Container for dynamically loaded announcements -->
+                <div id="announcements-list">
+                    <p class="loading-text">Ładowanie ogłoszeń...</p>
                 </div>
             </section>
 
