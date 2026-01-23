@@ -395,6 +395,24 @@ function insertHtmlAtCursor(html) {
 
     range.insertNode(frag);
     range.collapse(false);
+  const toolbar = document.querySelector('.rich-text-toolbar');
+
+toolbar.addEventListener('click', (e) => {
+    const btn = e.target.closest('.toolbar-btn');
+    if (!btn) return;
+
+    // MEDIA
+    const insertType = btn.getAttribute('data-insert');
+    if (insertType === 'image') {
+        insertImage();
+        return;
+    }
+    if (insertType === 'pdf') {
+        insertPdf();
+        return;
+    }
+});
+
 }
 
 async function insertImage() {
