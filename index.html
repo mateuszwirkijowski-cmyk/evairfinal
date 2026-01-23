@@ -126,13 +126,7 @@
                     </ul>
                 </div>
 
-                <!-- Evair - rozmowy (POZA KATEGORIAMI, lewy dolny róg) -->
-                <div class="nav-private-chat">
-                    <button class="nav-btn" data-target="private-chat">
-                        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path><circle cx="12" cy="11" r="1"></circle><circle cx="16" cy="11" r="1"></circle><circle cx="8" cy="11" r="1"></circle></svg>
-                        <span class="nav-text" data-editable-id="nav_private_chat">Evair - rozmowy</span>
-                    </button>
-                </div>
+                
 
             </div>
         </nav>
@@ -239,64 +233,7 @@
 
 
             <!-- PRYWATNY MESSENGER - Evair rozmowy (lewy dolny róg) -->
-            <section id="private-chat" class="channel-section">
-                <!-- NOWY LAYOUT MESSENGERA -->
-                <div class="messenger-container">
-                    <!-- Lewy panel - lista konwersacji -->
-                    <div class="conversations-panel">
-                        <div class="conversations-header">
-                            <h3>Wiadomości</h3>
-                            <button id="new-conversation-btn" class="btn-icon" title="Nowa rozmowa">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path><line x1="9" y1="9" x2="15" y2="9"></line><line x1="9" y1="13" x2="15" y2="13"></line></svg>
-                            </button>
-                        </div>
-                        <div class="conversations-list" id="conversations-list">
-                            <div class="empty-state">
-                                <p>Brak rozmów</p>
-                                <button class="btn btn-outline btn-small" onclick="document.getElementById('new-conversation-btn').click()">Rozpocznij rozmowę</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Prawy panel - okno czatu -->
-                    <div class="chat-window">
-                        <div id="chat-empty-state" class="chat-empty-state">
-                            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                            <p>Wybierz rozmowę lub rozpocznij nową</p>
-                        </div>
-
-                        <div id="chat-active" class="chat-active" style="display: none;">
-                            <!-- Nagłówek czatu -->
-                            <div class="chat-header">
-                                <div class="chat-header-info">
-                                    <div class="chat-header-avatar" id="chat-header-avatar">?</div>
-                                    <div>
-                                        <div class="chat-header-name" id="chat-header-name">Nazwa</div>
-                                        <div class="chat-header-members" id="chat-header-members"></div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Wiadomości -->
-                            <div class="chat-messages" id="chat-messages"></div>
-
-                            <!-- Input -->
-                            <div class="chat-input-area">
-                                <form id="chat-form">
-                                    <button type="button" id="media-upload-btn" class="btn-icon" title="Wyślij zdjęcie lub film">
-                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
-                                    </button>
-                                    <input type="file" id="media-upload-input" accept="image/*,video/*,.gif" style="display: none;" multiple>
-                                    <input type="text" id="chat-input" class="chat-input" placeholder="Napisz wiadomość..." autocomplete="off">
-                                    <button type="submit" class="btn-icon btn-send">
-                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
+            
 
             <!-- BLA_BLA_AIR POST FEED - Społeczność -->
             <section id="feed" class="channel-section">
@@ -450,20 +387,18 @@
     <footer class="main-footer">
         <div class="footer-content">
             <div class="footer-column">
-                <h3>Skontaktuj się z nami</h3>
-                <p>Masz pytania? Napisz do nas.</p>
-                <form id="contact-form">
-                    <input type="text" id="contact-name" class="form-input footer-input" placeholder="Twoje imię">
-                    <input type="email" id="contact-email" class="form-input footer-input" placeholder="Twój e-mail">
-                    <textarea id="contact-message" class="form-input footer-input" rows="3" placeholder="Wiadomość"></textarea>
-                    <button type="submit" class="btn btn-primary footer-btn">Wyślij wiadomość</button>
-                </form>
-            </div>
-            <div class="footer-column">
                 <h3>Lokalizacja</h3>
                 <p>ul. Kaliskiego 57, Lotnisko Warszawa Babice<br>Hangar 4, 01-476 Warszawa</p>
                 <div class="map-container">
-                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2441.767424667355!2d20.8953!3d52.266!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x471ecba0c4033e07%3A0x6b4c10c4033e07!2sGen.+Sylwestra+Kaliskiego+57%2C+01-476+Warszawa!5e0!3m2!1spl!2spl!4v1600000000000!5m2!1spl!2spl" width="100%" height="250" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+                    <iframe
+    src="https://www.google.com/maps?q=ul.%20Kaliskiego%2057,%20Lotnisko%20Warszawa%20Babice,%20Hangar%204,%2001-476%20Warszawa&output=embed"
+    width="100%"
+    height="250"
+    style="border:0;"
+    loading="lazy"
+    referrerpolicy="no-referrer-when-downgrade">
+</iframe>
+
                 </div>
             </div>
         </div>
