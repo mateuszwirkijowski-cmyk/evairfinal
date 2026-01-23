@@ -1463,7 +1463,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const targetId = btn.getAttribute('data-target');
             if(!targetId) return;
 
-            if (targetId !== 'private-chat' && pollingInterval) {
+            if (pollingInterval) {
                 clearInterval(pollingInterval);
                 pollingInterval = null;
             }
@@ -2013,44 +2013,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
 
-        try {
-            console.log('🔥 Calling getOrCreateDirectConversation with:', {
-                currentUserId: userData.user.id,
-                otherUserId: targetProfileId
-            });
-
-            // FIX: open DM from BlaBlaAir via popover
-            const conversation = await getOrCreateDirectConversation(userData.user.id, targetProfileId);
-            console.log('🟢 Conversation created/found:', conversation);
-
-            // Reload conversations list
-            console.log('🔥 Loading conversations...');
-            await loadConversations();
-
-            // FIX: navigate to Evair -> Rozmowy
-            const privateChatNavBtn = document.querySelector('.nav-btn[data-target="private-chat"]');
-            console.log('🔥 Private chat nav button:', privateChatNavBtn);
-
-            if (privateChatNavBtn) {
-                privateChatNavBtn.click();
-            }
-
-            // Open the conversation
-            setTimeout(() => {
-                console.log('🔥 Opening conversation:', conversation.id);
-                openConversation(conversation.id);
-            }, 100);
-
-        } catch (error) {
-            console.error('🔴 DM POPOVER Error starting conversation:', error);
-            console.error('🔴 Error details:', {
-                message: error.message,
-                code: error.code,
-                details: error.details,
-                hint: error.hint
-            });
-            alert('Nie udało się rozpocząć rozmowy');
-        }
+        // Private chat functionality has been removed
+        alert('Funkcja wiadomości prywatnych została wyłączona.');
     });
 
     // NEW: DM popover cancel button
@@ -2110,20 +2074,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Załaduj konwersacje po zalogowaniu
     if (userData) {
         loadConversations();
-    }
-
-    // ============================================
-    // FORMULARZ KONTAKTOWY
-    // ============================================
-
-    const contactForm = document.getElementById('contact-form');
-    if (contactForm) {
-        contactForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            // TODO: backend - wysłać e-mail przez API
-            alert('Wiadomość wysłana! (Symulacja)');
-            contactForm.reset();
-        });
     }
 
     // ============================================
