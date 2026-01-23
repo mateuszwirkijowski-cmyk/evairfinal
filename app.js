@@ -2104,62 +2104,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if(privacyModal) privacyModal.classList.add('hidden');
     };
 
-    // ============================================
-    // MATERIAŁY SZKOLENIOWE
-    // ============================================
-
-    const modulesData = {
-        1: {
-            title: "Moduł 1: Podstawy",
-            desc: "Wprowadzenie wideo do kursu.",
-            contentHtml: `
-                <div class="embedded-media">
-                    <p>▶ Tu byłby odtwarzacz wideo (MP4)</p>
-                </div>
-                <h4>Dokumentacja:</h4>
-                <div class="embedded-doc">
-                    <iframe src="about:blank" style="width:100%; height:100%; border:none;"></iframe>
-                    <div style="position:absolute; top:50%; width:100%; text-align:center; pointer-events:none;">Podgląd dokumentu PDF</div>
-                </div>
-            `
-        },
-        2: {
-            title: "Moduł 2: Bezpieczeństwo",
-            desc: "Nagranie o bezpieczeństwie.",
-            contentHtml: `
-                <div class="embedded-media" style="background: #222;">
-                    <p>▶ Wideo: Bezpieczeństwo (20 min)</p>
-                </div>
-                <h4>Checklista:</h4>
-                <div class="embedded-doc">
-                     <div style="padding:20px; text-align:center; color:#777;">PDF z checklistą.</div>
-                </div>
-            `
-        },
-        3: {
-            title: "Moduł 3: Rezerwacje",
-            desc: "Instruktaż kalendarza.",
-            contentHtml: `
-                <div class="embedded-media" style="background: #333;">
-                    <p>▶ Wideo: System rezerwacji</p>
-                </div>
-            `
-        }
-    };
-
-    window.showModule = function(moduleId) {
-        const buttons = document.querySelectorAll('.training-btn');
-        buttons.forEach((btn, index) => {
-            if (index + 1 === moduleId) btn.classList.add('active');
-            else btn.classList.remove('active');
-        });
-        const data = modulesData[moduleId];
-        const contentDiv = document.getElementById('module-content');
-        if (data) {
-            contentDiv.innerHTML = `<h2>${data.title}</h2><p>${data.desc}</p><hr style="margin: 20px 0;">${data.contentHtml}`;
-        }
-    };
-    showModule(1);
+    
 
     // ============================================
     // LIGHTBOX GALERII
