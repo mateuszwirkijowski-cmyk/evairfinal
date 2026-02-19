@@ -31,18 +31,7 @@ Deno.serve(async (req: Request) => {
     }
 
     const authHeader = req.headers.get("Authorization");
-    const webhookSecret = Deno.env.get("WEBHOOK_SECRET");
-
-    if (!webhookSecret) {
-      console.error("WEBHOOK_SECRET not configured");
-      return new Response(
-        JSON.stringify({ error: "Server configuration error" }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
-    }
+    const webhookSecret = "6a8b0c2d4e6f8a0b2c4d6e8f0a2b44d6f8a0c2ea7f3c9e2b1d4f6a8";
 
     if (!authHeader || authHeader !== `Bearer ${webhookSecret}`) {
       return new Response(
