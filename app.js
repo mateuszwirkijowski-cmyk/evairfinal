@@ -1807,7 +1807,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                             <h3>${escapeHtml(announcement.title)}</h3>
                             <span class="date">${date}</span>
                         </div>
-                        <p>${escapeHtml(announcement.content)}</p>
+                        <p style="white-space: pre-wrap;">${escapeHtml(announcement.content)}</p>
                         <span class="tag">${escapeHtml(announcement.tag)}</span>
                         ${adminButtons}
                     </div>
