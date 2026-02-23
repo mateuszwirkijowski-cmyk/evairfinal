@@ -2405,10 +2405,23 @@ textarea.input-field {
     margin-bottom: 12px;
 }
 
-.rich-text-editor ul,
+.rich-text-editor ul {
+    margin-left: 24px;
+    margin-bottom: 12px;
+    list-style: disc;
+    padding-left: 0;
+}
+
 .rich-text-editor ol {
     margin-left: 24px;
     margin-bottom: 12px;
+    list-style: decimal;
+    padding-left: 0;
+}
+
+.rich-text-editor ul li,
+.rich-text-editor ol li {
+    margin-bottom: 8px;
 }
 
 .rich-text-editor hr {
