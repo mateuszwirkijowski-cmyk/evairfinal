@@ -173,6 +173,26 @@
                                 <option value="Informacja">Informacja</option>
                             </select>
                         </div>
+
+                        <div class="form-group">
+                            <label>Zdjęcia / Filmy (opcjonalnie)</label>
+                            <div class="media-upload-area" id="announcement-media-upload-area">
+                                <input type="file" id="announcement-media-input" multiple accept="image/*,video/*" style="display:none">
+                                <button type="button" class="btn btn-outline btn-sm" id="announcement-media-btn">
+                                    📎 Dodaj media
+                                </button>
+                                <span class="media-upload-hint">Zdjęcia lub filmy (max 50MB każdy)</span>
+                            </div>
+                            <div id="announcement-media-preview" class="media-preview-grid"></div>
+                        </div>
+
+                        <div class="form-group form-group-inline">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="announcement-pin-checkbox">
+                                <span>📌 Przypnij ogłoszenie (widoczne w menu bocznym)</span>
+                            </label>
+                        </div>
+
                         <div class="form-actions">
                             <button type="submit" class="btn btn-primary" id="announcement-submit-btn">Opublikuj</button>
                             <button type="button" class="btn btn-outline" id="announcement-cancel-btn" style="display: none;">Anuluj</button>
@@ -181,8 +201,18 @@
                 </div>
 
                 <!-- Container for dynamically loaded announcements -->
-                <div id="announcements-list">
-                    <p class="loading-text">Ładowanie ogłoszeń...</p>
+                <div class="announcements-layout">
+                    <div id="announcements-list">
+                        <p class="loading-text">Ładowanie ogłoszeń...</p>
+                    </div>
+
+                    <div id="pinned-announcements-panel" class="pinned-panel">
+                        <div class="pinned-panel-header">
+                            <span>📌 Przypięte ogłoszenia</span>
+                        </div>
+                        <div id="pinned-announcements-list" class="pinned-list">
+                        </div>
+                    </div>
                 </div>
             </section>
 

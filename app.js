@@ -1759,6 +1759,37 @@ document.addEventListener('DOMContentLoaded', async () => {
     const announcementForm = document.getElementById('create-announcement-form');
     const announcementCreatorCard = document.getElementById('admin-announcement-creator');
     let editingAnnouncementId = null;
+    let announcementSelectedFiles = [];
+
+    // Upload announcement attachment to storage
+    async function uploadAnnouncementAttachment(announcementId, file) {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+        const filePath = `announcements/${announcementId}/${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+            .from('announcement-media')
+            .upload(filePath, file);
+
+        if (uploadError) throw new Error(uploadError.message);
+
+        const { data: urlData } = supabase.storage
+            .from('announcement-media')
+            .getPublicUrl(filePath);
+
+        let type = 'file';
+        if (file.type.startsWith('image/')) {
+            type = file.type === 'image/gif' ? 'gif' : 'image';
+        } else if (file.type.startsWith('video/')) {
+            type = 'video';
+        }
+
+        return {
+            type,
+            url: urlData.publicUrl,
+            filename: file.name
+        };
+    }
 
     // Load all announcements from database
     async function loadAnnouncements() {
@@ -1775,7 +1806,23 @@ document.addEventListener('DOMContentLoaded', async () => {
                 return;
             }
 
-            announcementsList.innerHTML = announcements.map(announcement => {
+            // Fetch attachments for each announcement
+            const announcementsWithAttachments = await Promise.all(
+                announcements.map(async (announcement) => {
+                    const { data: attachments } = await supabase
+                        .from('announcement_attachments')
+                        .select('*')
+                        .eq('announcement_id', announcement.id)
+                        .order('created_at', { ascending: true });
+
+                    return {
+                        ...announcement,
+                        attachments: attachments || []
+                    };
+                })
+            );
+
+            announcementsList.innerHTML = announcementsWithAttachments.map(announcement => {
                 const date = new Date(announcement.created_at).toLocaleDateString('pl-PL', {
                     day: 'numeric',
                     month: 'long',
@@ -1801,6 +1848,17 @@ document.addEventListener('DOMContentLoaded', async () => {
                     </div>
                 ` : '';
 
+                const mediaHtml = announcement.attachments && announcement.attachments.length > 0
+                    ? announcement.attachments.map(att => {
+                        if (att.type === 'image' || att.type === 'gif') {
+                            return `<img src="${att.url}" alt="${escapeHtml(att.filename)}" class="announcement-media-img" style="max-width:100%;border-radius:8px;margin-top:8px;cursor:pointer" onclick="window.open('${att.url}','_blank')">`;
+                        } else if (att.type === 'video') {
+                            return `<video src="${att.url}" controls style="max-width:100%;border-radius:8px;margin-top:8px"></video>`;
+                        }
+                        return `<a href="${att.url}" target="_blank" class="file-link" style="display:block;margin-top:8px;">${escapeHtml(att.filename)}</a>`;
+                    }).join('')
+                    : '';
+
                 return `
                     <div class="card announcement-card">
                         <div class="card-header">
@@ -1808,6 +1866,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                             <span class="date">${date}</span>
                         </div>
                         <p style="white-space: pre-wrap;">${escapeHtml(announcement.content)}</p>
+                        ${mediaHtml}
                         <span class="tag">${escapeHtml(announcement.tag)}</span>
                         ${adminButtons}
                     </div>
@@ -1820,6 +1879,56 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
+    // Media upload handlers
+    const mediaBtn = document.getElementById('announcement-media-btn');
+    const mediaInput = document.getElementById('announcement-media-input');
+
+    if (mediaBtn && mediaInput) {
+        mediaBtn.addEventListener('click', () => {
+            mediaInput.click();
+        });
+
+        mediaInput.addEventListener('change', (e) => {
+            const files = Array.from(e.target.files);
+            files.forEach(file => {
+                announcementSelectedFiles.push(file);
+            });
+            renderAnnouncementMediaPreview();
+            e.target.value = '';
+        });
+    }
+
+    function renderAnnouncementMediaPreview() {
+        const preview = document.getElementById('announcement-media-preview');
+        if (!preview) return;
+
+        preview.innerHTML = '';
+        announcementSelectedFiles.forEach((file, index) => {
+            const item = document.createElement('div');
+            item.className = 'media-preview-item';
+
+            if (file.type.startsWith('image/')) {
+                const img = document.createElement('img');
+                img.src = URL.createObjectURL(file);
+                item.appendChild(img);
+            } else if (file.type.startsWith('video/')) {
+                const vid = document.createElement('video');
+                vid.src = URL.createObjectURL(file);
+                item.appendChild(vid);
+            }
+
+            const removeBtn = document.createElement('button');
+            removeBtn.className = 'media-preview-remove';
+            removeBtn.innerHTML = '×';
+            removeBtn.addEventListener('click', () => {
+                announcementSelectedFiles.splice(index, 1);
+                renderAnnouncementMediaPreview();
+            });
+            item.appendChild(removeBtn);
+            preview.appendChild(item);
+        });
+    }
+
     // Create or update announcement
     if (announcementForm) {
         announcementForm.addEventListener('submit', async (e) => {
@@ -1828,6 +1937,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const title = document.getElementById('announcement-title').value.trim();
             const content = document.getElementById('announcement-content').value.trim();
             const tag = document.getElementById('announcement-tag').value;
+            const isPinned = document.getElementById('announcement-pin-checkbox').checked;
             const editId = document.getElementById('announcement-edit-id').value;
 
             if (!title || !content) {
@@ -1838,56 +1948,89 @@ document.addEventListener('DOMContentLoaded', async () => {
             try {
                 const submitBtn = document.getElementById('announcement-submit-btn');
                 submitBtn.disabled = true;
-                submitBtn.textContent = editId ? 'Zapisywanie...' : 'Publikowanie...';
+                submitBtn.textContent = 'Zapisywanie...';
+
+                let announcementId;
 
                 if (editId) {
                     // Update existing announcement
-                    const { error } = await supabase
+                    const { data, error } = await supabase
                         .from('announcements')
                         .update({
                             title: title,
                             content: content,
-                            tag: tag
+                            tag: tag,
+                            is_pinned: isPinned,
+                            updated_at: new Date().toISOString()
                         })
-                        .eq('id', editId);
+                        .eq('id', editId)
+                        .select()
+                        .single();
 
                     if (error) throw error;
-
+                    announcementId = editId;
                     console.log('[ANNOUNCEMENTS] Updated announcement:', editId);
                 } else {
                     // Create new announcement
-                    const { error } = await supabase
+                    const { data, error } = await supabase
                         .from('announcements')
                         .insert({
                             title: title,
                             content: content,
                             tag: tag,
+                            is_pinned: isPinned,
                             author_id: currentUserId
-                        });
+                        })
+                        .select()
+                        .single();
 
                     if (error) throw error;
-
+                    announcementId = data.id;
                     console.log('[ANNOUNCEMENTS] Created new announcement');
+                }
+
+                // Upload media files if any
+                if (announcementSelectedFiles.length > 0) {
+                    const uploadedAttachments = await Promise.all(
+                        announcementSelectedFiles.map(file => uploadAnnouncementAttachment(announcementId, file))
+                    );
+
+                    const attachmentsData = uploadedAttachments.map(att => ({
+                        announcement_id: announcementId,
+                        type: att.type,
+                        url: att.url,
+                        filename: att.filename
+                    }));
+
+                    const { error: attachErr } = await supabase
+                        .from('announcement_attachments')
+                        .insert(attachmentsData);
+
+                    if (attachErr) throw attachErr;
                 }
 
                 // Reset form
                 announcementForm.reset();
                 document.getElementById('announcement-edit-id').value = '';
+                document.getElementById('announcement-pin-checkbox').checked = false;
+                announcementSelectedFiles = [];
+                renderAnnouncementMediaPreview();
                 document.getElementById('announcement-form-title').textContent = 'Dodaj ogłoszenie';
                 document.getElementById('announcement-submit-btn').textContent = 'Opublikuj';
                 document.getElementById('announcement-cancel-btn').style.display = 'none';
                 editingAnnouncementId = null;
 
-                // Reload announcements
+                // Reload announcements and pinned
                 await loadAnnouncements();
+                await loadPinnedAnnouncements();
 
             } catch (error) {
                 console.error('Error saving announcement:', error);
-                alert('Wystąpił błąd podczas zapisywania ogłoszenia');
+                alert('Wystąpił błąd podczas zapisywania ogłoszenia: ' + error.message);
             } finally {
                 const submitBtn = document.getElementById('announcement-submit-btn');
                 submitBtn.disabled = false;
-                submitBtn.textContent = editingAnnouncementId ? 'Zapisz' : 'Opublikuj';
+                submitBtn.textContent = 'Opublikuj';
             }
         });
     }
@@ -1912,6 +2055,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             document.getElementById('announcement-title').value = announcement.title;
             document.getElementById('announcement-content').value = announcement.content;
             document.getElementById('announcement-tag').value = announcement.tag;
+            document.getElementById('announcement-pin-checkbox').checked = announcement.is_pinned || false;
 
             // Update UI
             document.getElementById('announcement-form-title').textContent = 'Edytuj ogłoszenie';
@@ -1957,13 +2101,49 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             console.log('[ANNOUNCEMENTS] Deleted announcement:', announcementId);
 
-            // Reload announcements
+            // Reload announcements and pinned
             await loadAnnouncements();
+            await loadPinnedAnnouncements();
 
         } catch (error) {
             console.error('Error deleting announcement:', error);
             alert('Wystąpił błąd podczas usuwania ogłoszenia');
         }
+    };
+
+    // Load pinned announcements
+    async function loadPinnedAnnouncements() {
+        const { data, error } = await supabase
+            .from('announcements')
+            .select('id, title, content, tag, created_at')
+            .eq('is_pinned', true)
+            .order('created_at', { ascending: false });
+
+        const list = document.getElementById('pinned-announcements-list');
+        if (!list) return;
+
+        if (error || !data || data.length === 0) {
+            list.innerHTML = '<p style="font-size:0.8rem;color:var(--text-grey,#888);padding:8px">Brak przypiętych ogłoszeń</p>';
+            return;
+        }
+
+        list.innerHTML = data.map(ann => `
+            <div class="pinned-item" id="pinned-item-${ann.id}">
+                <div class="pinned-item-header" onclick="togglePinnedItem('${ann.id}')">
+                    <span>${escapeHtml(ann.title || 'Ogłoszenie')}</span>
+                    <span class="pinned-item-chevron">▼</span>
+                </div>
+                <div class="pinned-item-body">
+                    ${escapeHtml(ann.content)}
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // Toggle pinned item expanded state
+    window.togglePinnedItem = function(id) {
+        const item = document.getElementById(`pinned-item-${id}`);
+        if (item) item.classList.toggle('expanded');
     };
 
     // Show announcement creator for admins
@@ -1973,6 +2153,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Load announcements on page load
     loadAnnouncements();
+    loadPinnedAnnouncements();
 
     // ============================================
     // REGULAMIN AND PRIVACY POLICY MODALS
