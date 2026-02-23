@@ -385,7 +385,7 @@ function applyUiTexts() {
     editableElements.forEach(element => {
         const elementId = element.getAttribute('data-editable-id');
         if (uiTextsCache[elementId]) {
-            if (element.tagName === 'UL') {
+            if (element.tagName === 'UL' || element.tagName === 'OL') {
                 // For lists, set innerHTML to preserve structure
                 element.innerHTML = uiTextsCache[elementId];
             } else {
