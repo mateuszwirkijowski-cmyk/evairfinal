@@ -2537,3 +2537,42 @@ textarea.input-field {
     border: none;
 }
 
+/* --- PASSWORD RESET STYLES --- */
+.reset-password-hint {
+    text-align: center;
+    margin-top: 12px;
+    font-size: 0.85rem;
+}
+
+.reset-password-hint a {
+    color: var(--text-grey, #888);
+    text-decoration: none;
+}
+
+.reset-password-hint a:hover {
+    text-decoration: underline;
+}
+
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-overlay .modal-content {
+    width: 100%;
+    max-width: 420px;
+    margin: 1rem;
+}
+
+.success-message {
+    color: var(--primary-red, #22c55e);
+    font-size: 0.9rem;
+    margin-top: 8px;
+    text-align: center;
+    font-weight: 500;
+}

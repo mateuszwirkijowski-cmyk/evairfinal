@@ -378,3 +378,217 @@ export function getUser() {
 export function getProfile() {
     return currentProfile;
 }
+
+// ============================================
+// PASSWORD RESET FUNCTIONALITY
+// ============================================
+
+let resetToken = null;
+
+// View switching between login and reset password forms
+document.addEventListener('DOMContentLoaded', () => {
+    const forgotPasswordLink = document.getElementById('forgot-password-link');
+    const backToLoginLink = document.getElementById('back-to-login-link');
+    const loginContainer = document.getElementById('login-form-container');
+    const resetContainer = document.getElementById('reset-password-container');
+    const loginEmailInput = document.getElementById('login-email');
+    const resetEmailInput = document.getElementById('reset-email');
+
+    if (forgotPasswordLink) {
+        forgotPasswordLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            loginContainer.classList.remove('active');
+            resetContainer.classList.add('active');
+
+            // Copy email from login to reset if present
+            if (loginEmailInput && loginEmailInput.value.trim()) {
+                resetEmailInput.value = loginEmailInput.value;
+            }
+        });
+    }
+
+    if (backToLoginLink) {
+        backToLoginLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            resetContainer.classList.remove('active');
+            loginContainer.classList.add('active');
+        });
+    }
+
+    // Handle reset request form submission
+    const resetRequestForm = document.getElementById('reset-request-form');
+    if (resetRequestForm) {
+        resetRequestForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const email = resetEmailInput.value.trim();
+            const submitBtn = resetRequestForm.querySelector('button[type="submit"]');
+            const messageDiv = document.getElementById('reset-request-message');
+
+            if (!email) {
+                messageDiv.textContent = 'Wprowadź adres e-mail';
+                messageDiv.className = 'error-message';
+                return;
+            }
+
+            // Show loading state
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Wysyłanie...';
+            messageDiv.textContent = '';
+
+            try {
+                const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+                const response = await fetch(
+                    `${supabaseUrl}/functions/v1/send-reset-email`,
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ email }),
+                    }
+                );
+
+                if (!response.ok) {
+                    throw new Error('Nie udało się wysłać wiadomości');
+                }
+
+                // Always show success message (security - don't reveal if email exists)
+                messageDiv.textContent = 'Jeśli podany adres istnieje w systemie, wysłaliśmy link resetujący. Sprawdź skrzynkę odbiorczą.';
+                messageDiv.className = 'success-message';
+                resetEmailInput.value = '';
+
+            } catch (error) {
+                console.error('Error sending reset email:', error);
+                messageDiv.textContent = 'Wystąpił błąd sieciowy. Spróbuj ponownie.';
+                messageDiv.className = 'error-message';
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Wyślij link resetujący';
+            }
+        });
+    }
+
+    // Check for reset token in URL on page load
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('reset_token');
+
+    if (token) {
+        resetToken = token;
+        const newPasswordModal = document.getElementById('new-password-modal');
+        const authModal = document.getElementById('auth-modal');
+
+        if (newPasswordModal) {
+            newPasswordModal.style.display = 'flex';
+        }
+        if (authModal) {
+            authModal.style.display = 'none';
+        }
+    }
+
+    // Handle new password form submission
+    const newPasswordForm = document.getElementById('new-password-form');
+    if (newPasswordForm) {
+        newPasswordForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const newPasswordInput = document.getElementById('new-password-reset');
+            const confirmPasswordInput = document.getElementById('confirm-password-reset');
+            const messageDiv = document.getElementById('new-password-message');
+            const submitBtn = newPasswordForm.querySelector('button[type="submit"]');
+
+            const newPassword = newPasswordInput.value;
+            const confirmPassword = confirmPasswordInput.value;
+
+            // Validate
+            if (newPassword.length < 8) {
+                messageDiv.textContent = 'Hasło musi mieć minimum 8 znaków';
+                messageDiv.className = 'error-message';
+                return;
+            }
+
+            if (newPassword !== confirmPassword) {
+                messageDiv.textContent = 'Hasła nie są zgodne';
+                messageDiv.className = 'error-message';
+                return;
+            }
+
+            if (!resetToken) {
+                messageDiv.textContent = 'Brak tokenu resetującego';
+                messageDiv.className = 'error-message';
+                return;
+            }
+
+            // Show loading
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Zapisywanie...';
+            messageDiv.textContent = '';
+
+            try {
+                const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+                const response = await fetch(
+                    `${supabaseUrl}/functions/v1/validate-and-reset`,
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            token: resetToken,
+                            newPassword: newPassword,
+                        }),
+                    }
+                );
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    messageDiv.textContent = data.error || 'Nie udało się zmienić hasła';
+                    messageDiv.className = 'error-message';
+                    return;
+                }
+
+                // Success
+                messageDiv.textContent = 'Hasło zostało zmienione! Za chwilę zostaniesz przekierowany...';
+                messageDiv.className = 'success-message';
+
+                // Clean URL
+                window.history.replaceState(null, '', '/');
+
+                // After 2.5 seconds: hide modal, show login form
+                setTimeout(() => {
+                    const newPasswordModal = document.getElementById('new-password-modal');
+                    const authModal = document.getElementById('auth-modal');
+                    const loginContainer = document.getElementById('login-form-container');
+                    const resetContainer = document.getElementById('reset-password-container');
+
+                    if (newPasswordModal) {
+                        newPasswordModal.style.display = 'none';
+                    }
+                    if (authModal) {
+                        authModal.style.display = 'flex';
+                    }
+                    if (loginContainer) {
+                        loginContainer.classList.add('active');
+                    }
+                    if (resetContainer) {
+                        resetContainer.classList.remove('active');
+                    }
+
+                    // Reset form
+                    newPasswordForm.reset();
+                    messageDiv.textContent = '';
+                    resetToken = null;
+                }, 2500);
+
+            } catch (error) {
+                console.error('Error resetting password:', error);
+                messageDiv.textContent = 'Wystąpił błąd sieciowy. Spróbuj ponownie.';
+                messageDiv.className = 'error-message';
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Zapisz nowe hasło';
+            }
+        });
+    }
+});

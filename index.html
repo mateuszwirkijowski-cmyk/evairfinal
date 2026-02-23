@@ -484,6 +484,9 @@
 
                     <button type="submit" class="btn btn-primary btn-block">Zaloguj się</button>
                 </form>
+                <p class="reset-password-hint">
+                    <a href="#" id="forgot-password-link">Nie pamiętasz hasła?</a>
+                </p>
             </div>
 
             <!-- Formularz rejestracji -->
@@ -516,6 +519,26 @@
 
                     <button type="submit" class="btn btn-primary btn-block">Zarejestruj się</button>
                 </form>
+            </div>
+
+            <!-- Formularz resetowania hasła -->
+            <div id="reset-password-container" class="auth-form-container">
+                <h2>Resetuj hasło</h2>
+                <p class="subtitle">Wyślemy Ci link na podany adres e-mail</p>
+                <form id="reset-request-form">
+                    <div class="form-group">
+                        <label for="reset-email">Adres e-mail</label>
+                        <input type="email" id="reset-email" class="form-input"
+                               placeholder="twoj@email.pl" required>
+                    </div>
+                    <div id="reset-request-message" class="error-message"></div>
+                    <button type="submit" class="btn btn-primary btn-block">
+                        Wyślij link resetujący
+                    </button>
+                </form>
+                <p class="reset-password-hint">
+                    <a href="#" id="back-to-login-link">← Wróć do logowania</a>
+                </p>
             </div>
         </div>
     </div>
@@ -705,6 +728,30 @@
                     </div>
                 </form>
             </div>
+        </div>
+    </div>
+
+    <!-- Modal nowego hasła -->
+    <div id="new-password-modal" class="modal-overlay" style="display:none">
+        <div class="modal-content auth-form-container active">
+            <h2>Nowe hasło</h2>
+            <p class="subtitle">Wprowadź swoje nowe hasło</p>
+            <form id="new-password-form">
+                <div class="form-group">
+                    <label for="new-password-reset">Nowe hasło</label>
+                    <input type="password" id="new-password-reset" class="form-input"
+                           placeholder="Minimum 8 znaków" required minlength="8">
+                </div>
+                <div class="form-group">
+                    <label for="confirm-password-reset">Potwierdź hasło</label>
+                    <input type="password" id="confirm-password-reset" class="form-input"
+                           placeholder="Powtórz nowe hasło" required minlength="8">
+                </div>
+                <div id="new-password-message" class="error-message"></div>
+                <button type="submit" class="btn btn-primary btn-block">
+                    Zapisz nowe hasło
+                </button>
+            </form>
         </div>
     </div>
 
