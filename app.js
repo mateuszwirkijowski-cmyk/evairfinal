@@ -1860,7 +1860,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     : '';
 
                 return `
-                    <div class="card announcement-card">
+                    <div id="announcement-${announcement.id}" class="card announcement-card">
                         <div class="card-header">
                             <h3>${escapeHtml(announcement.title)}</h3>
                             <span class="date">${date}</span>
@@ -2143,7 +2143,25 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Toggle pinned item expanded state
     window.togglePinnedItem = function(id) {
         const item = document.getElementById(`pinned-item-${id}`);
-        if (item) item.classList.toggle('expanded');
+        if (!item) return;
+
+        const wasExpanded = item.classList.contains('expanded');
+        item.classList.toggle('expanded');
+
+        // Jeśli właśnie rozwinęliśmy (nie zwijamy) - scrolluj do ogłoszenia
+        if (!wasExpanded) {
+            const announcementCard = document.getElementById(`announcement-${id}`);
+            if (announcementCard) {
+                announcementCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+                // Opcjonalnie: krótkie podświetlenie karty
+                announcementCard.style.transition = 'box-shadow 0.3s';
+                announcementCard.style.boxShadow = '0 0 0 3px var(--primary-red, #E30613)';
+                setTimeout(() => {
+                    announcementCard.style.boxShadow = '';
+                }, 1500);
+            }
+        }
     };
 
     // Show announcement creator for admins
