@@ -2133,8 +2133,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                     <span>${escapeHtml(ann.title || 'Ogłoszenie')}</span>
                     <span class="pinned-item-chevron">▼</span>
                 </div>
-                <div class="pinned-item-body">
+                <div class="pinned-item-body" onclick="scrollToAnnouncement('${ann.id}')" style="cursor:pointer">
                     ${escapeHtml(ann.content)}
+                    <div class="pinned-item-scroll-hint">↗ Przejdź do ogłoszenia</div>
                 </div>
             </div>
         `).join('');
@@ -2143,24 +2144,21 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Toggle pinned item expanded state
     window.togglePinnedItem = function(id) {
         const item = document.getElementById(`pinned-item-${id}`);
-        if (!item) return;
+        if (item) item.classList.toggle('expanded');
+    };
 
-        const wasExpanded = item.classList.contains('expanded');
-        item.classList.toggle('expanded');
+    // Scroll to announcement in main view
+    window.scrollToAnnouncement = function(id) {
+        const announcementCard = document.getElementById(`announcement-${id}`);
+        if (announcementCard) {
+            announcementCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
-        // Jeśli właśnie rozwinęliśmy (nie zwijamy) - scrolluj do ogłoszenia
-        if (!wasExpanded) {
-            const announcementCard = document.getElementById(`announcement-${id}`);
-            if (announcementCard) {
-                announcementCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
-
-                // Opcjonalnie: krótkie podświetlenie karty
-                announcementCard.style.transition = 'box-shadow 0.3s';
-                announcementCard.style.boxShadow = '0 0 0 3px var(--primary-red, #E30613)';
-                setTimeout(() => {
-                    announcementCard.style.boxShadow = '';
-                }, 1500);
-            }
+            // Podświetlenie karty
+            announcementCard.style.transition = 'box-shadow 0.3s';
+            announcementCard.style.boxShadow = '0 0 0 3px var(--primary-red, #E30613)';
+            setTimeout(() => {
+                announcementCard.style.boxShadow = '';
+            }, 1500);
         }
     };
 

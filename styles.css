@@ -2737,10 +2737,22 @@ textarea.input-field {
     line-height: 1.5;
     background: var(--bg-white, #fff);
     color: var(--text-grey, #555);
+    transition: background 0.2s;
+}
+
+.pinned-item-body:hover {
+    background: #f0f0ff;
 }
 
 .pinned-item.expanded .pinned-item-body {
     display: block;
+}
+
+.pinned-item-scroll-hint {
+    margin-top: 8px;
+    font-size: 0.75rem;
+    color: var(--primary-red, #E30613);
+    font-weight: 500;
 }
 
 @media (max-width: 768px) {
