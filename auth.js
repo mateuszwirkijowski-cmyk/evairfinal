@@ -437,13 +437,13 @@ document.addEventListener('DOMContentLoaded', () => {
             messageDiv.textContent = '';
 
             try {
-                const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
                 const response = await fetch(
                     `${supabaseUrl}/functions/v1/send-reset-email`,
                     {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${supabaseAnonKey}`
                         },
                         body: JSON.stringify({ email }),
                     }
@@ -525,13 +525,13 @@ document.addEventListener('DOMContentLoaded', () => {
             messageDiv.textContent = '';
 
             try {
-                const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
                 const response = await fetch(
                     `${supabaseUrl}/functions/v1/validate-and-reset`,
                     {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${supabaseAnonKey}`
                         },
                         body: JSON.stringify({
                             token: resetToken,
