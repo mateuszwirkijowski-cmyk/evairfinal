@@ -43,8 +43,32 @@ Deno.serve(async (req: Request) => {
     const resendApiKey = Deno.env.get("VITE_RESEND_API_KEY");
     const appUrl = Deno.env.get("APP_URL");
 
-    if (!supabaseUrl || !serviceRoleKey || !resendApiKey || !appUrl) {
-      throw new Error("Missing environment variables");
+    console.log('ENV CHECK:', {
+      hasResendKey: !!resendApiKey,
+      hasSupabaseUrl: !!supabaseUrl,
+      hasServiceRole: !!serviceRoleKey,
+      hasAppUrl: !!appUrl
+    });
+
+    if (!resendApiKey) {
+      return new Response(
+        JSON.stringify({ error: 'Missing RESEND_API_KEY env variable' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (!supabaseUrl || !serviceRoleKey) {
+      return new Response(
+        JSON.stringify({ error: 'Missing Supabase env variables' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (!appUrl) {
+      return new Response(
+        JSON.stringify({ error: 'Missing APP_URL env variable' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     // Look up user by email in auth.users table
@@ -187,7 +211,7 @@ Deno.serve(async (req: Request) => {
   } catch (error) {
     console.error("Error in send-reset-email:", error);
     return new Response(
-      JSON.stringify({ error: "Internal server error" }),
+      JSON.stringify({ error: error.message || "Internal server error" }),
       {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },

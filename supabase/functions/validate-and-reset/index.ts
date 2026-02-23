@@ -51,8 +51,16 @@ Deno.serve(async (req: Request) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
+    console.log('ENV CHECK:', {
+      hasSupabaseUrl: !!supabaseUrl,
+      hasServiceRole: !!serviceRoleKey
+    });
+
     if (!supabaseUrl || !serviceRoleKey) {
-      throw new Error("Missing environment variables");
+      return new Response(
+        JSON.stringify({ error: 'Missing Supabase env variables' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     // Look up token in password_reset_tokens
@@ -139,7 +147,7 @@ Deno.serve(async (req: Request) => {
   } catch (error) {
     console.error("Error in validate-and-reset:", error);
     return new Response(
-      JSON.stringify({ error: "Wystąpił błąd serwera" }),
+      JSON.stringify({ error: error.message || "Wystąpił błąd serwera" }),
       {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
