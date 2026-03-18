@@ -79,7 +79,7 @@ Deno.serve(async (req) => {
     const resend = new Resend(resendApiKey)
 
     const { data, error: resendError } = await resend.emails.send({
-      from: 'onboarding@resend.dev',
+      from: 'Evair <noreply@evair.pl>',
       to: email,
       subject: 'Resetowanie hasła',
       html: `
