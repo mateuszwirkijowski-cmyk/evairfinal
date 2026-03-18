@@ -492,18 +492,20 @@ async function updateUserRole(userId, newRole) {
 
 // Send password reset email
 async function handlePasswordReset(email) {
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: window.location.origin
-    });
+    try {
+        const { data, error } = await supabase.functions.invoke('send-reset-email', {
+            body: { email }
+        });
 
-    if (error) {
+        if (error) throw error;
+
+        alert('Link do resetu hasła wysłany na adres: ' + email);
+        return true;
+    } catch (error) {
         console.error('Error sending password reset:', error);
         alert('Błąd: Nie udało się wysłać linku do resetowania hasła');
         return false;
     }
-
-    alert('Link do resetu hasła wysłany na adres: ' + email);
-    return true;
 }
 
 // Open user management modal
@@ -547,12 +549,19 @@ async function openUserManagementModal() {
                     </select>
                     ${isCurrentUser ? '<span class="current-user-badge">(Ty)</span>' : ''}
                 </td>
-                <td>
+                <td style="display: flex; gap: 8px; align-items: center;">
                     <button
                         class="btn-reset-password"
                         ${isCurrentUser ? 'disabled' : ''}
                         onclick="handlePasswordReset('${user.email}')">
                         Resetuj hasło
+                    </button>
+                    <button
+                        class="btn-reset-password"
+                        style="background: #dc2626; color: white; border-color: #dc2626;"
+                        ${isCurrentUser ? 'disabled' : ''}
+                        onclick="handleDeleteUser('${user.id}', '${user.full_name || user.email}')">
+                        Usuń konto
                     </button>
                 </td>
             </tr>
@@ -561,6 +570,26 @@ async function openUserManagementModal() {
 }
 
 // Close user management modal
+window.handleDeleteUser = async function(userId, userName) {
+    if (!confirm(`Czy na pewno chcesz usunąć konto użytkownika "${userName}"?\n\nTej operacji nie można cofnąć!`)) {
+        return;
+    }
+
+    try {
+        const { error } = await supabase.functions.invoke('delete-user', {
+            body: { userId }
+        });
+
+        if (error) throw error;
+
+        alert(`Konto użytkownika "${userName}" zostało usunięte.`);
+        await openUserManagementModal();
+    } catch (error) {
+        console.error('Error deleting user:', error);
+        alert('Błąd: Nie udało się usunąć konta. ' + error.message);
+    }
+};
+
 window.closeUserManagementModal = function() {
     const modal = document.getElementById('user-management-modal');
     modal.classList.add('hidden');
