@@ -787,5 +787,17 @@
 
     <!-- CHANGED: Dodanie type="module" dla ES6 imports -->
     <script type="module" src="app.js"></script>
+
+    <!-- ACTIVATION MODAL -->
+    <div id="activation-modal" class="modal-overlay hidden" style="display:none;">
+      <div class="modal-card" style="max-width: 420px; text-align: center; padding: 40px 32px;">
+        <div id="activation-icon" style="font-size: 48px; margin-bottom: 16px;">⏳</div>
+        <h2 id="activation-title" style="margin-bottom: 12px;">Aktywacja konta</h2>
+        <p id="activation-message" style="color: #666; margin-bottom: 24px;">Trwa weryfikacja Twojego linku aktywacyjnego...</p>
+        <button id="activation-close-btn" class="btn btn-primary" onclick="closeActivationModal()" style="display:none;">
+          Przejdź do logowania
+        </button>
+      </div>
+    </div>
 </body>
 </html>

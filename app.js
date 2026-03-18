@@ -490,6 +490,57 @@ async function updateUserRole(userId, newRole) {
     return true;
 }
 
+async function handleActivationToken(token) {
+        const modal = document.getElementById('activation-modal');
+        const icon = document.getElementById('activation-icon');
+        const title = document.getElementById('activation-title');
+        const message = document.getElementById('activation-message');
+        const closeBtn = document.getElementById('activation-close-btn');
+
+        // Show modal with loading state
+        modal.classList.remove('hidden');
+        modal.style.display = 'flex';
+
+        try {
+            const { data, error } = await supabase.functions.invoke('verify-activation-token', {
+                body: { token }
+            });
+
+            if (error) throw new Error(error.message);
+
+            if (data?.error) throw new Error(data.error);
+
+            // Success state
+            icon.textContent = '✅';
+            title.textContent = 'Konto aktywowane!';
+            message.textContent = 'Twoje konto zostało pomyślnie aktywowane. Możesz się teraz zalogować.';
+            closeBtn.style.display = 'inline-block';
+
+            // Clean URL
+            window.history.replaceState({}, document.title, window.location.pathname);
+
+        } catch (error) {
+            console.error('[ACTIVATION] Error:', error.message);
+
+            // Error state
+            icon.textContent = '❌';
+            title.textContent = 'Błąd aktywacji';
+            message.textContent = error.message || 'Link aktywacyjny jest nieprawidłowy lub wygasł.';
+            closeBtn.style.display = 'inline-block';
+        }
+    }
+
+    window.closeActivationModal = function() {
+        const modal = document.getElementById('activation-modal');
+        modal.classList.add('hidden');
+        modal.style.display = 'none';
+
+        // Show auth modal so user can log in
+        const authModal = document.getElementById('auth-modal');
+        authModal.classList.remove('hidden');
+        authModal.style.display = 'flex';
+    };
+
 // Send password reset email
 window.handlePasswordReset = async function(email) {
     try {
@@ -1079,20 +1130,27 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-// Check for password reset token in URL BEFORE showing auth overlay
+// Check for tokens in URL BEFORE showing auth overlay
     const urlParams = new URLSearchParams(window.location.search);
     const resetToken = urlParams.get('reset_token');
+    const activationToken = urlParams.get('activation_token');
 
-    if (resetToken) {
+    if (activationToken) {
+        // User came from activation email
+        hideAuthModal();
+        hideMainApp();
+        await handleActivationToken(activationToken);
+
+    } else if (resetToken) {
         // User came from reset email - hide auth overlay, show reset modal
         hideAuthModal();
         showMainApp();
 
-        // Show the new password modal
         const newPasswordModal = document.getElementById('new-password-modal');
         if (newPasswordModal) {
             newPasswordModal.style.display = 'flex';
         }
+
     } else if (!userData) {
         showAuthModal();
         hideMainApp();
