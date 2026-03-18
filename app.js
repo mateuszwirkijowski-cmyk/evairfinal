@@ -1419,6 +1419,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             const result = await signIn(email, password);
             console.log('[LOGIN] Login successful:', result);
 
+            // Check if email is confirmed (account activated)
+            const { data: { user: signedInUser } } = await supabase.auth.getUser();
+            if (signedInUser && !signedInUser.email_confirmed_at) {
+                // Account not activated - sign out and show error
+                await supabase.auth.signOut();
+                loginError.textContent = 'Konto nie zostało aktywowane. Sprawdź skrzynkę e-mail i kliknij link aktywacyjny.';
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Zaloguj się';
+                return;
+            }
+
             loginForm.reset();
 
             // Get fresh user data after login
@@ -1526,30 +1537,47 @@ document.addEventListener('DOMContentLoaded', async () => {
             const result = await signUp(email, password, fullName);
             console.log('[REGISTER] Registration successful:', result);
 
+            // IMPORTANT: Sign out immediately after signUp to prevent auto-login
+            await supabase.auth.signOut();
+
             // Send activation email via Edge Function
+            let emailSent = false;
             try {
-                await supabase.functions.invoke('send-activation-email', {
+                const { data: emailData, error: emailError } = await supabase.functions.invoke('send-activation-email', {
                     body: { email, fullName }
                 });
-                console.log('[REGISTER] Activation email sent to:', email);
+
+                if (emailError) {
+                    console.error('[REGISTER] Edge function error:', emailError);
+                } else if (emailData?.error) {
+                    console.error('[REGISTER] Email send error:', emailData.error);
+                } else {
+                    emailSent = true;
+                    console.log('[REGISTER] Activation email sent to:', email);
+                }
             } catch (activationError) {
                 console.error('[REGISTER] Failed to send activation email:', activationError);
-                // Do not block registration if email fails
             }
 
             registerForm.reset();
 
-            // Switch to login tab automatically
+            // Make sure auth modal is visible and user is NOT logged in
+            hideMainApp();
+            showAuthModal();
+
+            // Switch to login tab
             authTabs[0].click();
             loginError.textContent = '';
 
-            // Show success message with email info
+            // Show appropriate success message
             const successMsg = document.createElement('div');
             successMsg.className = 'success-message';
-            successMsg.style.cssText = 'padding: 12px; margin-bottom: 16px; background-color: #10b981; color: white; border-radius: 8px; text-align: center;';
-            successMsg.textContent = 'Konto utworzone! Sprawdź skrzynkę e-mail aby aktywować konto.';
+            successMsg.style.cssText = 'padding: 12px; margin-bottom: 16px; background-color: #10b981; color: white; border-radius: 8px; text-align: center; line-height: 1.5;';
+            successMsg.textContent = emailSent
+                ? 'Konto utworzone! Sprawdź skrzynkę e-mail aby aktywować konto przed logowaniem.'
+                : 'Konto utworzone! Nie udało się wysłać emaila aktywacyjnego - skontaktuj się z administratorem.';
             loginContainer.insertBefore(successMsg, loginForm);
-            setTimeout(() => successMsg.remove(), 8000);
+            setTimeout(() => successMsg.remove(), 10000);
 
             console.log('[REGISTER] Registration complete, switched to login');
 

@@ -52,7 +52,7 @@ Deno.serve(async (req) => {
     const resend = new Resend(resendApiKey)
 
     const { error: resendError } = await resend.emails.send({
-      from: 'onboarding@resend.dev',
+      from: 'Evair <noreply@evair.pl>',
       to: email,
       subject: 'Aktywacja konta Evair',
       html: `
