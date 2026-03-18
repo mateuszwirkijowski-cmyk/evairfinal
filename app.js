@@ -1050,16 +1050,29 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    if (!userData) {
-        // Użytkownik nie zalogowany - pokaż modal logowania
+// Check for password reset token in URL BEFORE showing auth overlay
+    const urlParams = new URLSearchParams(window.location.search);
+    const resetToken = urlParams.get('reset_token');
+
+    if (resetToken) {
+        // User came from reset email - hide auth overlay, show reset modal
+        hideAuthModal();
+        showMainApp();
+
+        // Show the new password modal
+        const newPasswordModal = document.getElementById('new-password-modal');
+        if (newPasswordModal) {
+            newPasswordModal.style.display = 'flex';
+        }
+    } else if (!userData) {
         showAuthModal();
         hideMainApp();
     } else {
-        // Użytkownik zalogowany - pokaż aplikację
         hideAuthModal();
         showMainApp();
         updateUserDisplay(userData);
     }
+
 
     // NEW: Nasłuchiwanie zmian stanu autentykacji
     onAuthStateChange(async (event, userData) => {
