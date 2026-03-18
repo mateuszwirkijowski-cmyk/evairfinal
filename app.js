@@ -491,7 +491,7 @@ async function updateUserRole(userId, newRole) {
 }
 
 // Send password reset email
-async function handlePasswordReset(email) {
+window.handlePasswordReset = async function(email) {
     try {
         const { data, error } = await supabase.functions.invoke('send-reset-email', {
             body: { email }
@@ -506,7 +506,7 @@ async function handlePasswordReset(email) {
         alert('Błąd: Nie udało się wysłać linku do resetowania hasła');
         return false;
     }
-}
+};
 
 // Open user management modal
 async function openUserManagementModal() {
@@ -1468,19 +1468,30 @@ document.addEventListener('DOMContentLoaded', async () => {
             const result = await signUp(email, password, fullName);
             console.log('[REGISTER] Registration successful:', result);
 
+            // Send activation email via Edge Function
+            try {
+                await supabase.functions.invoke('send-activation-email', {
+                    body: { email, fullName }
+                });
+                console.log('[REGISTER] Activation email sent to:', email);
+            } catch (activationError) {
+                console.error('[REGISTER] Failed to send activation email:', activationError);
+                // Do not block registration if email fails
+            }
+
             registerForm.reset();
 
             // Switch to login tab automatically
             authTabs[0].click();
             loginError.textContent = '';
 
-            // Show success message
+            // Show success message with email info
             const successMsg = document.createElement('div');
             successMsg.className = 'success-message';
             successMsg.style.cssText = 'padding: 12px; margin-bottom: 16px; background-color: #10b981; color: white; border-radius: 8px; text-align: center;';
-            successMsg.textContent = 'Konto utworzone! Możesz się teraz zalogować.';
+            successMsg.textContent = 'Konto utworzone! Sprawdź skrzynkę e-mail aby aktywować konto.';
             loginContainer.insertBefore(successMsg, loginForm);
-            setTimeout(() => successMsg.remove(), 5000);
+            setTimeout(() => successMsg.remove(), 8000);
 
             console.log('[REGISTER] Registration complete, switched to login');
 
