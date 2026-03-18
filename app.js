@@ -1231,7 +1231,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                 return;
             }
 
-
+            // If login was handled manually by loginForm handler, skip double-run
+            if (window._loginHandledManually) {
+                console.log('[AUTH] Login already handled manually - skipping SIGNED_IN handler');
+                window._loginHandledManually = false;
+                return;
+            }
 
             // Reset conversation state
             if (pollingInterval) {
@@ -1475,6 +1480,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         submitBtn.textContent = 'Logowanie...';
 
         try {
+            // Set flag so onAuthStateChange SIGNED_IN does not double-run
+            window._loginHandledManually = true;
             const result = await signIn(email, password);
             console.log('[LOGIN] Login successful:', result);
 
@@ -1564,6 +1571,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
 
         } catch (error) {
+            window._loginHandledManually = false;
             console.error('[LOGIN] Login error:', error);
             if (error.message === 'ACCOUNT_NOT_ACTIVATED') {
                 loginError.textContent = 'Konto nie zostało aktywowane. Sprawdź skrzynkę e-mail i kliknij link aktywacyjny.';
