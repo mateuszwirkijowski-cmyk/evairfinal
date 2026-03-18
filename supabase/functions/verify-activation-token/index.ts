@@ -76,6 +76,12 @@ Deno.serve(async (req) => {
       .update({ used: true })
       .eq('token', token)
 
+    // Activate user account in profiles table
+    await supabase
+      .from('profiles')
+      .update({ is_activated: true })
+      .eq('email', tokenData.email)
+
     console.log('Account activated for:', tokenData.email)
 
     return new Response(

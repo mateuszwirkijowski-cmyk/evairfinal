@@ -147,6 +147,10 @@ export async function signUp(email, password, fullName) {
         throw new Error(error.message);
     }
 
+    // Immediately sign out to prevent auto-login after registration
+    // User must activate their account via email link first
+    await supabase.auth.signOut();
+
     return data;
 }
 
@@ -168,6 +172,15 @@ export async function signIn(email, password) {
     } catch (profileError) {
         console.error('[AUTH] Error loading profile during sign in:', profileError);
         // Profile already set to fallback by loadUserProfile, continue
+    }
+
+    // Check if account is activated using our own flag in profiles table
+    if (currentProfile && currentProfile.is_activated === false) {
+        // Sign out immediately - account not activated
+        await supabase.auth.signOut();
+        currentUser = null;
+        currentProfile = null;
+        throw new Error('ACCOUNT_NOT_ACTIVATED');
     }
 
     return { user: currentUser, profile: currentProfile };

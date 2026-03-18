@@ -1493,7 +1493,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         } catch (error) {
             console.error('[LOGIN] Login error:', error);
-            loginError.textContent = getPolishErrorMessage(error.message);
+            if (error.message === 'ACCOUNT_NOT_ACTIVATED') {
+                loginError.textContent = 'Konto nie zostało aktywowane. Sprawdź skrzynkę e-mail i kliknij link aktywacyjny.';
+            } else {
+                loginError.textContent = getPolishErrorMessage(error.message);
+            }
             submitBtn.disabled = false;
             submitBtn.textContent = 'Zaloguj się';
         }
