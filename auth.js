@@ -100,7 +100,8 @@ async function loadUserProfile(userId) {
             email: userEmail,
             full_name: currentUser?.user_metadata?.full_name || currentUser?.email || 'User',
             role: isMyAdmin ? 'admin' : 'user',  // FORCE ADMIN FOR MY EMAIL
-            avatar_url: null
+            avatar_url: null,
+            is_activated: false
         };
 
         console.log('[AUTH] Mocked profile created:', currentProfile);
@@ -119,7 +120,8 @@ async function loadUserProfile(userId) {
             email: userEmail,
             full_name: currentUser?.user_metadata?.full_name || userEmail,
             role: isMyAdmin ? 'admin' : 'user',
-            avatar_url: null
+            avatar_url: null,
+            is_activated: false
         };
 
         return currentProfile;
@@ -132,26 +134,33 @@ async function loadUserProfile(userId) {
 
 // Rejestracja nowego użytkownika
 export async function signUp(email, password, fullName) {
-    const { data, error } = await supabase.auth.signUp({
-        email: email,
-        password: password,
-        options: {
-            data: {
-                full_name: fullName
-            },
-            emailRedirectTo: null
+    // Set flag BEFORE signUp so onAuthStateChange ignores this event
+    window._isRegistering = true;
+
+    try {
+        const { data, error } = await supabase.auth.signUp({
+            email: email,
+            password: password,
+            options: {
+                data: {
+                    full_name: fullName
+                },
+                emailRedirectTo: null
+            }
+        });
+
+        if (error) {
+            throw new Error(error.message);
         }
-    });
 
-    if (error) {
-        throw new Error(error.message);
+        // Sign out immediately to prevent auto-login
+        await supabase.auth.signOut();
+
+        return data;
+    } finally {
+        // Always clear the flag
+        window._isRegistering = false;
     }
-
-    // Immediately sign out to prevent auto-login after registration
-    // User must activate their account via email link first
-    await supabase.auth.signOut();
-
-    return data;
 }
 
 // Logowanie użytkownika
@@ -175,7 +184,11 @@ export async function signIn(email, password) {
     }
 
     // Check if account is activated using our own flag in profiles table
-    if (currentProfile && currentProfile.is_activated === false) {
+    // Admin email always bypasses activation check
+    const isAdminEmail = currentUser?.email === 'wirkijowski.mateusz@gmail.com';
+    const isActivated = currentProfile?.is_activated;
+
+    if (!isAdminEmail && isActivated !== true) {
         // Sign out immediately - account not activated
         await supabase.auth.signOut();
         currentUser = null;
@@ -318,9 +331,13 @@ export async function removeAvatar(userId) {
 // ============================================
 
 export function onAuthStateChange(callback) {
-    // WAŻNE: Nie używamy async callback bezpośrednio (deadlock risk)
     supabase.auth.onAuthStateChange((event, session) => {
-        // Async operacje w oddzielnym bloku
+        // Ignore ALL events during registration flow
+        if (window._isRegistering) {
+            console.log('[AUTH] Ignoring auth event during registration:', event);
+            return;
+        }
+
         (async () => {
             try {
                 if (session?.user) {
@@ -334,7 +351,6 @@ export function onAuthStateChange(callback) {
                 }
             } catch (error) {
                 console.error('[AUTH] Error in onAuthStateChange:', error);
-                // Continue with fallback profile if loadUserProfile set it
                 if (currentUser && currentProfile) {
                     callback(event, { user: currentUser, profile: currentProfile });
                 } else {
