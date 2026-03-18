@@ -1184,14 +1184,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         } catch (e) {
             // Ignore replaceState errors
         }
+        // Flag: URL already cleaned, skip cleanup inside handleActivationToken
+        window._activationUrlAlreadyCleaned = true;
         hideAuthModal();
         hideMainApp();
         handleActivationToken(activationToken);
     }
-
-    // Also remove the clean URL step from inside handleActivationToken
-    // by setting a flag so it knows URL is already clean
-    window._activationUrlAlreadyCleaned = true;
 
     if (resetToken) {
         // User came from reset email - hide auth overlay, show reset modal
@@ -1223,7 +1221,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             // User logged in - reset and reload
             console.log('[AUTH] User logged in - resetting app state');
 
-            
+            // If activation modal is currently visible, do not interrupt the flow
+            const activationModal = document.getElementById('activation-modal');
+            const isActivationFlowActive = activationModal &&
+                !activationModal.classList.contains('hidden') &&
+                activationModal.style.display !== 'none';
+            if (isActivationFlowActive) {
+                console.log('[AUTH] Activation flow in progress - skipping SIGNED_IN handler');
+                return;
+            }
+
+
 
             // Reset conversation state
             if (pollingInterval) {
@@ -1292,7 +1300,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             updateUserDisplay(userData);
 
             // Reload all data for new user
-            
             await loadPosts();
 
         } else if (event === 'SIGNED_OUT') {
