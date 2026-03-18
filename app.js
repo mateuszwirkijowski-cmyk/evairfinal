@@ -516,8 +516,15 @@ async function handleActivationToken(token) {
             message.textContent = 'Twoje konto zostało pomyślnie aktywowane. Możesz się teraz zalogować.';
             closeBtn.style.display = 'inline-block';
 
-            // Clean URL
-            window.history.replaceState({}, document.title, window.location.pathname);
+            // Clean URL (if not already cleaned before Supabase init)
+            if (!window._activationUrlAlreadyCleaned) {
+                try {
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                } catch (e) {
+                    // Ignore replaceState errors
+                }
+            }
+            window._activationUrlAlreadyCleaned = false;
 
         } catch (error) {
             console.error('[ACTIVATION] Error:', error.message);
@@ -1135,13 +1142,25 @@ document.addEventListener('DOMContentLoaded', async () => {
     const resetToken = urlParams.get('reset_token');
     const activationToken = urlParams.get('activation_token');
 
+    // Remove activation_token from URL immediately before Supabase can try to parse it
     if (activationToken) {
-        // User came from activation email
+        try {
+            const cleanUrl = window.location.pathname +
+                (resetToken ? '?reset_token=' + resetToken : '');
+            window.history.replaceState({}, document.title, cleanUrl);
+        } catch (e) {
+            // Ignore replaceState errors
+        }
         hideAuthModal();
         hideMainApp();
-        await handleActivationToken(activationToken);
+        handleActivationToken(activationToken);
+    }
 
-    } else if (resetToken) {
+    // Also remove the clean URL step from inside handleActivationToken
+    // by setting a flag so it knows URL is already clean
+    window._activationUrlAlreadyCleaned = true;
+
+    if (resetToken) {
         // User came from reset email - hide auth overlay, show reset modal
         hideAuthModal();
         showMainApp();
