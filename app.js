@@ -513,8 +513,8 @@ async function handleActivationToken(token) {
             // Success state
             icon.textContent = '✅';
             title.textContent = 'Konto aktywowane!';
-            message.textContent = 'Twoje konto zostało pomyślnie aktywowane. Możesz się teraz zalogować.';
-            closeBtn.style.display = 'inline-block';
+            message.textContent = 'Twoje konto zostało pomyślnie aktywowane. Za chwilę zostaniesz przekierowany do logowania...';
+            closeBtn.style.display = 'none';
 
             // Clean URL (if not already cleaned before Supabase init)
             if (!window._activationUrlAlreadyCleaned) {
@@ -525,6 +525,39 @@ async function handleActivationToken(token) {
                 }
             }
             window._activationUrlAlreadyCleaned = false;
+
+            // After 2 seconds: hide modal and show login form with pre-filled email
+            const activatedEmail = data?.email || '';
+            setTimeout(() => {
+                // Hide activation modal
+                modal.classList.add('hidden');
+                modal.style.display = 'none';
+
+                // Show auth modal (login screen)
+                const authModal = document.getElementById('auth-modal');
+                if (authModal) {
+                    authModal.classList.remove('hidden');
+                    authModal.style.display = 'flex';
+                }
+
+                // Switch to login tab
+                const loginTab = document.querySelector('[data-tab="login"]');
+                if (loginTab) loginTab.click();
+
+                // Pre-fill email field in login form
+                const emailField = document.getElementById('login-email');
+                if (emailField && activatedEmail) {
+                    emailField.value = activatedEmail;
+                    // Focus password field so user only needs to type password
+                    const passwordField = document.getElementById('login-password');
+                    if (passwordField) passwordField.focus();
+                }
+
+                // Show success notification
+                if (typeof showNotification === 'function') {
+                    showNotification('Konto aktywowane! Wpisz hasło aby się zalogować.', 'success');
+                }
+            }, 2000);
 
         } catch (error) {
             console.error('[ACTIVATION] Error:', error.message);
