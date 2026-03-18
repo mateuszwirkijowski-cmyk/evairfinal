@@ -165,38 +165,50 @@ export async function signUp(email, password, fullName) {
 
 // Logowanie użytkownika
 export async function signIn(email, password) {
-    const { data, error } = await supabase.auth.signInWithPassword({
-        email: email,
-        password: password
-    });
-
-    if (error) {
-        throw new Error(error.message);
-    }
-
-    currentUser = data.user;
+    // Set flag BEFORE signIn so onAuthStateChange is blocked
+    // until we verify the account is activated
+    window._isVerifyingActivation = true;
 
     try {
-        await loadUserProfile(data.user.id);
-    } catch (profileError) {
-        console.error('[AUTH] Error loading profile during sign in:', profileError);
-        // Profile already set to fallback by loadUserProfile, continue
+        const { data, error } = await supabase.auth.signInWithPassword({
+            email: email,
+            password: password
+        });
+
+        if (error) {
+            throw new Error(error.message);
+        }
+
+        currentUser = data.user;
+
+        try {
+            await loadUserProfile(data.user.id);
+        } catch (profileError) {
+            console.error('[AUTH] Error loading profile during sign in:', profileError);
+        }
+
+        // Check if account is activated using our own flag in profiles table
+        // Admin email always bypasses activation check
+        const isAdminEmail = currentUser?.email === 'wirkijowski.mateusz@gmail.com';
+        const isActivated = currentProfile?.is_activated;
+
+        if (!isAdminEmail && isActivated !== true) {
+            // Sign out immediately - account not activated
+            await supabase.auth.signOut();
+            currentUser = null;
+            currentProfile = null;
+            throw new Error('ACCOUNT_NOT_ACTIVATED');
+        }
+
+        // Account is activated - allow onAuthStateChange to proceed
+        window._isVerifyingActivation = false;
+        return { user: currentUser, profile: currentProfile };
+
+    } catch (error) {
+        // Always clear flag on any error
+        window._isVerifyingActivation = false;
+        throw error;
     }
-
-    // Check if account is activated using our own flag in profiles table
-    // Admin email always bypasses activation check
-    const isAdminEmail = currentUser?.email === 'wirkijowski.mateusz@gmail.com';
-    const isActivated = currentProfile?.is_activated;
-
-    if (!isAdminEmail && isActivated !== true) {
-        // Sign out immediately - account not activated
-        await supabase.auth.signOut();
-        currentUser = null;
-        currentProfile = null;
-        throw new Error('ACCOUNT_NOT_ACTIVATED');
-    }
-
-    return { user: currentUser, profile: currentProfile };
 }
 
 // Wylogowanie użytkownika
@@ -335,6 +347,20 @@ export function onAuthStateChange(callback) {
         // Ignore ALL events during registration flow
         if (window._isRegistering) {
             console.log('[AUTH] Ignoring auth event during registration:', event);
+            return;
+        }
+
+        // Ignore SIGNED_IN during activation verification
+        // We handle the login result manually in signIn()
+        if (window._isVerifyingActivation && event === 'SIGNED_IN') {
+            console.log('[AUTH] Ignoring SIGNED_IN during activation verification');
+            return;
+        }
+
+        // If account was rejected (SIGNED_OUT after failed activation check)
+        // also ignore that SIGNED_OUT so app doesn't flicker
+        if (window._isVerifyingActivation && event === 'SIGNED_OUT') {
+            console.log('[AUTH] Ignoring SIGNED_OUT during activation verification');
             return;
         }
 

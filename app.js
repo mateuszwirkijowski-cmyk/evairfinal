@@ -1432,6 +1432,19 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             loginForm.reset();
 
+            // Manually update UI after confirmed successful login
+            // (onAuthStateChange was blocked during verification)
+            hideAuthModal();
+            showMainApp();
+            if (result?.profile) {
+                updateUserDisplay(result);
+            } else {
+                const userData = await getCurrentUser();
+                if (userData) {
+                    updateUserDisplay(userData);
+                }
+            }
+
             // Get fresh user data after login
             const userData = await getCurrentUser();
             console.log('[LOGIN] User data after login:', userData);
